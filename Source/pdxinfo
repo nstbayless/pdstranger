@@ -1,0 +1,6 @@
+name=pdstranger
+author=Sodium
+description=puzzle game inspired by void stranger
+bundleID=app.pdstranger.pd
+version=1.0
+buildNumber=100
