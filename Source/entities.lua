@@ -4,9 +4,41 @@ function ENTS.octahedron.init(e)
     e.state = e.state or "idle"
 end
 
+function ENTS.beaver.init(e)
+    e.state = e.state or "idle"
+end
+
 function ENTS.player.init(e)
     e.state = e.state or "s"
 end
+
+function ENTS.stgor.init(e)
+    e.state = e.state or "off"
+end
+
+function ENTS.stlev.init(e)
+    e.state = e.state or "off"
+end
+
+function ENTS.mim.init(e)
+    e.state = "s"
+    if e.base.axis.y then
+        e.state = "n"
+    end
+end
+ENTS.mimx.init = ENTS.mim.init
+ENTS.mimy.init = ENTS.mim.init
+ENTS.mimxy.init = ENTS.mim.init
+
+function ENTS.mim.update(e, dx, dy)
+    if e.base.axis.x then dx *= -1 end
+    if e.base.axis.y then dy *= -1 end
+    
+    entity_prepare_move(e, dx, dy)
+end
+ENTS.mimx.update = ENTS.mim.update
+ENTS.mimy.update = ENTS.mim.update
+ENTS.mimxy.update = ENTS.mim.update
 
 function ENTS.player.draw(e)
     local px, py = pcoord_of(e.tidx)
@@ -92,6 +124,80 @@ function ENTS.smiler.update(e)
             elseif dx > 0 then
                 e.state = "e"
             end
+            entity_prepare_move(e, dx, dy)
+        end
+    end
+end
+
+function ENTS.beaver.update(e)
+    if e.state == "idle" then
+        local player = get_player()
+        if not player then
+            return
+        end
+        
+        local x, y = tcoord_of(e.tidx)
+        
+        local player_x, player_y = tcoord_of(player.tidx)
+        
+        local dx = 0
+        local dy = 0
+        
+        if player_y == y and player_x < x then
+            dx = -1
+        elseif player_y == y and player_x > x then
+            dx = 1
+        elseif player_x == x and player_y < y then
+            dy = -1
+        elseif player_x == x and player_y > y then
+            dy = 1
+        end
+        
+        if dx ~= 0 or dy ~= 0 then
+            
+            -- check if intervening object blocks line-of-sight
+            local cx = x + dx
+            local cy = y + dy
+            local obstacle = false
+            while (cx ~= player_x or cy ~= player_y) do
+                local tile = tile_at(cx, cy)
+                local e = ent_at(cx, cy)
+                if not tile or TILES[tile].solid then
+                    obstacle = true
+                    break
+                end
+                if e then
+                    obstacle = true
+                    break
+                end
+                cx += dx
+                cy += dy
+            end
+            
+            if not obstacle then
+                local blocker = get_entity_move_blocker(
+                    e, dx, dy,
+                    MOVE_FLAG_NO_PUSH | MOVE_FLAG_NO_PITS | MOVE_FLAG_IGNORE_PLAYER
+                )
+                if blocker == nil then
+                    e.state = dir_to_cardinal(dx, dy)
+                end
+            end
+        end
+    end
+    
+    if e.state ~= "idle" then
+        local dx, dy = cardinal_to_dir(e.state)
+        
+        local blocker = get_entity_move_blocker(
+            e, dx, dy,
+            MOVE_FLAG_NO_PUSH | MOVE_FLAG_NO_PITS
+        )
+        if blocker == "pdie" then
+            add_entity_killing_player(e)
+        elseif blocker then
+            e.state = "idle"
+        else
             entity_prepare_move(e, dx, dy)
         end
     end
@@ -244,7 +350,7 @@ function get_entity_move_blocker(e, dx, dy, flags)
                 return "stopped"
             elseif b2.enemy and b.player then
                 return "pdie", e2
-            elseif b2.player and b.enemy then
+            elseif b2.player and b.enemy and (flags & MOVE_FLAG_IGNORE_PLAYER) == 0 then
                 return "pdie"
             else
                 return nil
@@ -434,13 +540,21 @@ function execute_moves()
     end
 end
 
-function entities_round(player_dx, player_dy)
-    State.player_dx = player_dx
-    State.player_dy = player_dy
-    
+function mimics_exist()
+    for tidx, e in pairs(State.ents) do
+        if e.base.mimic then
+            return true
+        end
+    end
+    return false
+end
+
+function entities_round(player_dx, player_dy, mimic)
     for tidx, e in pairs(table.copy(State.ents)) do
-        if e.base.update then
-            e.base.update(e)
+        if e.base.mimic == mimic then
+            if e.base.update then
+                e.base.update(e, player_dx, player_dy)
+            end
         end
     end
     

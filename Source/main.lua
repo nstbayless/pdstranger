@@ -15,7 +15,7 @@ GlobalState = {
 GFX = playdate.graphics.imagetable.new("tiles")
 FONT = playdate.graphics.imagetable.new("font")
 
-load_brane("branes/b004")
+load_brane("branes/b006")
 playdate.display.setRefreshRate(20)
 
 queuedInput = nil
@@ -97,11 +97,31 @@ function player_panic_animation()
     end
 end
 
-function processAction()
-    if #actionQueue == 0 then
+function advance_round_phase()
+    if push_secondary_animations() then
         return
     end
-    
+
+    -- 2 phases if mimics present
+    if State.entity_moves_pending == true and mimics_exist() then
+        State.entity_moves_pending = 2
+        entities_round(State.player_dx, State.player_dy, true)
+        push_secondary_animations()
+    elseif State.entity_moves_pending then
+        State.entity_moves_pending = false
+        entities_round(State.player_dx, State.player_dy)
+        push_secondary_animations()
+    end
+end
+
+function processAction()
+    if #actionQueue == 0 then
+        -- no action to advance, but a round phase may still be owed: the
+        -- mimic phase leaves entity_moves_pending set for the nonmimic one
+        advance_round_phase()
+        return
+    end
+
     local action = actionQueue[#actionQueue]
     
     
@@ -167,6 +187,7 @@ function processAction()
     if action.type == "act" then
         local player = get_player()
         player.rod_animation_timer = nil
+        State.player_dx, State.player_dy = 0, 0
         local dx, dy = cardinal_to_dir(player.state)
         local x, y = tcoord_of(player.tidx)
         local e = ent_at(x + dx, y + dy)
@@ -224,12 +245,22 @@ function processAction()
         pushAction({type="fadein", t=0, speed=1.0/0.9, lifeloss=action.lifeloss})
     elseif action.type == "move" then
         State.round += 1
-        entity_clear_movephase()
-        action.e.state = dir_to_cardinal(action.dx, action.dy)
-        entity_prepare_move(action.e, action.dx, action.dy)
+        
+        -- animation
         action.e.rod_animation_timer = nil
+        
+        -- record direction for mimic movement later
+        State.player_dx, State.player_dy = action.dx, action.dy
+        
+        -- change facing
+        action.e.state = dir_to_cardinal(action.dx, action.dy)
+        
+        -- move
+        entity_clear_movephase()
+        entity_prepare_move(action.e, action.dx, action.dy)
         execute_moves()
         
+        -- update entities
         State.entity_moves_pending = true
     elseif action.type == "secondary" then
         State.explosions = {}
@@ -268,15 +299,7 @@ function processAction()
         pushAction({type="fall-panic", t=0, speed=1.0/SECONDARY_ANIMATIONS_TIME})
     end
     
-    if not push_secondary_animations() then
-        -- TODO: mimics go first
-        
-        if State.entity_moves_pending then
-            State.entity_moves_pending = false
-            entities_round()
-            push_secondary_animations() 
-        end
-    end
+    advance_round_phase()
 end
 
 function draw_special_animations()
@@ -355,7 +378,7 @@ function playdate.update()
     -- update
     if in_dialogue() then
         tick_dialogue()
-    elseif #actionQueue > 0 then
+    elseif #actionQueue > 0 or State.entity_moves_pending then
         processAction()
     elseif queuedInput then
         if queuedInputFrames >= MAX_INPUT_QUEUE_FRAMES then
