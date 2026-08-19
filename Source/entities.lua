@@ -300,12 +300,16 @@ function entity_execute_move(e)
                 end
             end
 
-            -- entities over pit -- explode (for now)
+            local srctile = TILES[tile_at(e.tidx) or "void"]
             local dsttile = TILES[tile_at(dstidx) or "wall"]
             if dsttile.pit then
+                -- entities over pit -- explode (for now)
                 entity_die(e)
                 State.explosions[dstidx] = true
             else
+                State.tiles_exited[e.tidx] = e
+                State.tiles_entered[dstidx] = e
+                
                 entity_set_position(e, dstx, dsty)
             end
         end
@@ -324,6 +328,9 @@ function entity_execute_move(e)
 end
 
 function execute_moves()
+    State.tiles_entered = {}
+    State.tiles_exited = {}
+    
     while true do
         -- execute move
         for tidx, e in pairs(table.copy(State.ents)) do
@@ -336,6 +343,8 @@ function execute_moves()
         
         -- check if anything to process
         local any_late = false
+        
+        -- deferred moves
         for tidx, e in pairs(table.copy(State.ents)) do
             if e.late_queued_move then
                 e.queued_move = e.late_queued_move
@@ -352,6 +361,21 @@ function execute_moves()
         
         if not any_late then
             break
+        end
+    end
+    
+    -- tiles entered/exited
+    for tidx, e in pairs(State.tiles_exited) do
+        local tbase = TILES[State.tiles[tidx]]
+        if tbase.entity_exit then
+            tbase.entity_exit(tidx, e)
+        end
+    end
+    
+    for tidx, e in pairs(State.tiles_entered) do
+        local tbase = TILES[State.tiles[tidx]]
+        if tbase.entity_enter then
+            tbase.entity_enter(tidx, e)
         end
     end
 end

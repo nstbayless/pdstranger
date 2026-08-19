@@ -8,6 +8,19 @@ function TILES.stair.get_animkey()
     return "on"
 end
 
+function TILES.ice.get_animkey(x, y, tstate)
+    if ent_at(x, y) then
+        return "off"
+    end
+    
+    return "on"
+end
+
+function TILES.ice.entity_exit(tidx, e)
+    State.tiles[tidx] = "void"
+    State.explosions[tidx] = true
+end
+
 function TILES.stair.rodbox()
     if TILES.stair.get_animkey() == "off" then
         return TILE_ROD_BOX + TILE_B_STAIRS_LOCKED
