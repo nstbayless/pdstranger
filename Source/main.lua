@@ -4,6 +4,13 @@ import "entities"
 import "tiles"
 import "brane"
 import "parse"
+import "dialogue"
+
+GlobalState = {
+    void = false,
+    hp = 7,
+    lives = 0,
+}
 
 GFX = playdate.graphics.imagetable.new("tiles")
 FONT = playdate.graphics.imagetable.new("font")
@@ -11,12 +18,15 @@ FONT = playdate.graphics.imagetable.new("font")
 load_brane("branes/b04")
 playdate.display.setRefreshRate(20)
 
+push_dialogue("What's this?? Something feels wrong...")
+
 queuedInput = nil
 queuedInputFrames = 0
 actionQueue = {}
 
 function pushAction(a)
     table.insert(actionQueue, a)
+    return a
 end
 
 function handleInput(input)
@@ -43,7 +53,12 @@ function handleInput(input)
 end
 
 function player_death()
-    pushAction({type="fadeout", speed=1.0/0.9, t=0})
+    local deathFade = pushAction({type="fadeout", speed=1.0/0.9, t=0})
+    
+    if not GlobalState.void and GlobalState.lives >= 1 then
+        pushAction({type="lifeloss", speed=1.0/0.6, t=0})
+        deathFade.lifeloss = true
+    end
 end
 
 function push_secondary_animations()
@@ -186,8 +201,14 @@ function processAction()
         -- completed fade out
         local brane_path = State.path
         reset_state()
+        if GlobalState.lives == 0 then
+            GlobalState.void = true
+        end
+        if action.lifeloss then
+            GlobalState.lives -= 1
+        end
         load_brane(brane_path)
-        pushAction({type="fadein", t=0, speed=1.0/0.9})
+        pushAction({type="fadein", t=0, speed=1.0/0.9, lifeloss=action.lifeloss})
     elseif action.type == "move" then
         State.round += 1
         entity_clear_movephase()
@@ -319,7 +340,9 @@ end
 
 function playdate.update()
     -- update
-    if #actionQueue > 0 then
+    if in_dialogue() then
+        tick_dialogue()
+    elseif #actionQueue > 0 then
         processAction()
     elseif queuedInput then
         if queuedInputFrames >= MAX_INPUT_QUEUE_FRAMES then
@@ -340,6 +363,7 @@ function playdate.update()
     draw_explosions()
     draw_entities()
     draw_special_animations()
+    draw_dialogue()
     
     queuedInputFrames += 1
     tick_frame()

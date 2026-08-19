@@ -1,26 +1,40 @@
-function draw_string(px, py, s)
+K_TEXT_WHITE = 1
+K_TEXT_BLACK = 0
+
+function draw_string(px, py, s, flags)
+    assert(type(s) == "string")
+    flags = flags or K_TEXT_BLACK
+    
+    if (flags & K_TEXT_WHITE) ~= 0 then
+        playdate.graphics.setImageDrawMode(playdate.graphics.kDrawModeInverted)
+    end
+    
     for i=1,#s do
-        c = string.byte(string.sub(s, i, i))
-        
-        t = -1
+        local c = string.byte(string.sub(s, i, i))
+        local t = -1
         
         if c >= string.byte('A') and c <= string.byte('Z') then
             t = c - string.byte('A')
+        end
+        
+        -- TODO: lowercase
+        if c >= string.byte('a') and c <= string.byte('z') then
+            t = c - string.byte('a')
         end
         
         if c >= string.byte('0') and c <= string.byte('9') then
             t = c - string.byte('0') + 26
         end
         
-        if c == "?" then
+        if c == string.byte("?") then
             t = 36
         end
         
-        if c == "." then
+        if c == string.byte(".") then
             t = 37
         end
         
-        if c == "," then
+        if c == string.byte(",") then
             t = 38
         end
         
@@ -30,6 +44,8 @@ function draw_string(px, py, s)
         
         px += GW/2
     end
+    
+    playdate.graphics.setImageDrawMode(playdate.graphics.kDrawModeCopy)
 end
 
 function draw_gfx(px, py, gfxidx)

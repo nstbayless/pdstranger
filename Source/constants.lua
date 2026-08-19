@@ -38,6 +38,29 @@ TILE_WALL_W2 = 2*TSTRIDE + 9
 TILE_WALL_S2 = 2*TSTRIDE + 10
 TILE_WALL_E2 = 2*TSTRIDE + 11
 
+TILE_DIALOGUE = {
+    [-1] = {
+        [-1] = TSTRIDE*5 + 16,
+        [0] = TSTRIDE*6 + 16,
+        [1] = TSTRIDE*7 + 16,
+    },
+    [0] = {
+        [-1] = TSTRIDE*5 + 17,
+        [0] = TSTRIDE*6 + 17,
+        [1] = TSTRIDE*7 + 17,
+    },
+    [1] = {
+        [-1] = TSTRIDE*5 + 18,
+        [0] = TSTRIDE*6 + 18,
+        [1] = TSTRIDE*7 + 18,
+    },
+    
+    prompt = {
+        TSTRIDE*6 + 19,
+        TSTRIDE*7 + 19,
+    }
+}
+
 TILES = {
     void = {
         sym=" ",

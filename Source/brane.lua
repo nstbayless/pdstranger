@@ -40,9 +40,6 @@ State = {
     -- increments once at start of player action
     round = 0,
     
-    void = false,
-    hp = 7,
-    lives = 0,
     brane_number = 1,
     memento = false,
     
@@ -183,21 +180,21 @@ function load_hud()
         if itile == "memento" then
             tstate = "_memento"
         elseif itile == "HP0" then
-            if State.void then
+            if GlobalState.void then
                 tstate = "VO"
             else
                 tstate = "HP"
             end
         elseif itile == "HP1" then
-            if State.void then
+            if GlobalState.void then
                 tstate = "ID"
             else
-                tstate = string.format("%02d", math.min(State.hp, 99) % 100 % 100)
+                tstate = string.format("%02d", math.min(GlobalState.hp, 99) % 100 % 100)
             end
         elseif itile == "LOC0" then
             tstate = "_locust"
         elseif itile == "LOC1" then
-            tstate = string.format("%02d", math.min(State.lives, 99) % 100)
+            tstate = string.format("%02d", math.min(GlobalState.lives, 99) % 100)
         elseif itile == "rod" then
             tstate = "_rod"
         elseif itile == "b0" then
