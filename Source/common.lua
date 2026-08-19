@@ -6,8 +6,8 @@ function draw_gfx(px, py, gfxidx)
     GFX:drawImage(gfxidx + 1, px, py, flip)
 end
 
-function draw_anim(px, py, anim)
-    local f = State.frame_animation
+function draw_anim(px, py, anim, f)
+    f = f or State.frame_animation
     if type(anim) == "number" then
         draw_gfx(px, py, anim)
         return
@@ -90,4 +90,11 @@ function table.deepcopy(original)
     copy[k] = table.deepcopy(v)
   end
   return copy
+end
+
+function table.empty(t)
+    for k, v in pairs(t) do
+        return false
+    end
+    return true
 end

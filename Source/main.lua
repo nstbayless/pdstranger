@@ -39,6 +39,22 @@ function handleInput(input)
     end
 end
 
+function push_secondary_animations()
+    if not table.empty(State.explosions) or #State.entity_killing_player > 0 or #State.entity_pushing > 0 then
+        pushAction({type="secondary", speed=1.0/SECONDARY_ANIMATIONS_TIME, t=0})
+    end
+end
+
+function player_panic_animation()
+    local player = get_entity_by_basekey("player")
+    if not player then return end
+    player.visible_state = "panic"
+    if not player.frame_animation then
+        player.frame_animation = 0
+        player.frame_animation_speed = 10
+    end
+end
+
 function processAction()
     if #actionQueue == 0 then
         return
@@ -65,6 +81,22 @@ function processAction()
                     actionQueue[#actionQueue] = nil
                 end
             end
+        elseif action.type == "fall-panic" then
+            player_panic_animation()
+        elseif action.type == "secondary" then
+            -- entities killing player
+            -- TODO: make it face player if possible
+            for tidx, e in pairs(State.entity_killing_player) do
+                if not e.frame_animation then
+                    e.frame_animation = 0
+                end
+                e.frame_animation_speed = 10
+            end
+            
+            -- player death animation
+            if #State.entity_killing_player > 0 then
+                player_panic_animation()
+            end
         end
         
         return
@@ -80,6 +112,31 @@ function processAction()
         execute_moves()
         
         entities_round(action.dx, action.dy)
+    elseif action.type == "secondary" then
+        State.explosions = {}
+        
+        for i, e in ipairs(State.entity_killing_player) do
+            e.visible_state = nil
+            e.frame_animation = nil
+        end
+        
+        for i, e in ipairs(State.entity_pushing) do
+            e.visible_state = nil
+            e.frame_animation = nil
+        end
+        
+        if #State.entity_killing_player > 0 then
+            local player = get_entity_by_basekey("player")
+            entity_die(player)
+            State.explosions[player.tidx] = true
+        end
+        
+        State.entity_killing_player = {}
+        State.entity_pushing = {}
+    elseif action.type == "fall-panic" then
+        local player = get_entity_by_basekey("player")
+        entity_die(player)
+        State.explosions[player.tidx] = true
     elseif action.type == "coyote" then
         -- fall into pit
         action.e.offx = nil
@@ -88,9 +145,36 @@ function processAction()
         action.e.visible_state = nil
         local x, y = tcoord_of(action.e.tidx)
         entity_set_position(action.e, x + action.dx, y + action.dy)
+        pushAction({type="fall-panic", t=0, speed=1.0/SECONDARY_ANIMATIONS_TIME})
     end
     
-    -- TODO: if explosions exist, push an explosion animation
+    push_secondary_animations()
+end
+
+function draw_explosions()
+    for tidx, _ in pairs(State.explosions) do
+        px, py = pcoord_of(tidx)
+        px += 0.5 * GW
+        py += 0.5 * GH
+        
+        for i=1,8 + math.random(4) do
+            local w = 3 + math.random()*14
+            local h = 3 + math.random()*12
+            
+            local xoff = (math.random() - math.random())*GW
+            local yoff = (math.random() - math.random())*GH
+            
+            playdate.graphics.setColor(
+                (math.random(2) == 1)
+                    and playdate.graphics.kColorBlack
+                    or playdate.graphics.kColorWhite
+            )
+            if math.random() > 0.4 then
+                playdate.graphics.setColor(playdate.graphics.kColorXOR)
+            end
+            playdate.graphics.fillRect(px - w/2 + xoff, py - h/2 + yoff, w, h)
+        end
+    end
 end
 
 function playdate.update()
@@ -113,7 +197,9 @@ function playdate.update()
     playdate.graphics.setColor(playdate.graphics.kColorBlack)
     playdate.graphics.fillRect(0, 0, 400, 240)
     draw_tiles()
+    draw_explosions()
     draw_entities()
+    
     queuedInputFrames += 1
     tick_frame()
 end

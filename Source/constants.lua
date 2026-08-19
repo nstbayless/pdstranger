@@ -221,6 +221,7 @@ ENTS = {
             rodw = 3*TSTRIDE + 13,
             rods = 3*TSTRIDE + 14,
             rodn = 3*TSTRIDE + 15,
+            panic = {3*TSTRIDE + 16, 3*TSTRIDE + 17}
         }
     },
     
@@ -392,3 +393,6 @@ DEFAULT_ACTION_SPEED = 14.3
 MAX_INPUT_QUEUE_FRAMES = 3
 MOVE_FLAG_NO_PITS = 1
 MOVE_FLAG_NO_PUSH = 2
+
+-- in seconds
+SECONDARY_ANIMATIONS_TIME = 0.6

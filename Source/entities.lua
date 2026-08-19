@@ -48,11 +48,11 @@ function draw_entity(e)
         draw_gfx(px, py, anim)
     elseif type(anim) == "table" then
         if anim[1] then
-            draw_anim(px, py, anim)
+            draw_anim(px, py, anim, e.frame_animation)
         else
             anim = anim[e.visible_state or e.state]
             if anim then
-                draw_anim(px, py, anim)
+                draw_anim(px, py, anim, e.frame_animation)
             end
         end
     end
@@ -64,6 +64,14 @@ function draw_entities()
             local e = ent_at(x, y)
             if e then
                 draw_entity(e)
+                
+                if e.frame_animation then
+                    if e.frame_animation_speed then
+                        e.frame_animation += e.frame_animation_speed / FPS
+                    else 
+                        e.frame += 1.0/state.frames_per_anim_tick
+                    end
+                end
             end
         end
     end
@@ -168,6 +176,7 @@ function get_entity_by_basekey(basekey)
 end
 
 function entity_die(e, animation)
+    if not e then return end
     State.ents[e.tidx] = nil
 end
 
@@ -211,7 +220,7 @@ function entity_execute_move(e)
             entity_set_position(e, dstx, dsty)
         end
     elseif q.blocked == "push" then
-        table.insert(State.pushing_entities, e)
+        table.insert(State.entity_pushing, e)
         q.e.late_queued_move = {
             move=true,
             crush=true,
