@@ -33,6 +33,10 @@ function TILES.hud.rodbox(tstate)
     end
 end
 
+function TILES.void.draw()
+    return true
+end
+
 function TILES.hud.draw(x, y, tstate)
     local px, py = pcoord_of(x, y)
     draw_gfx(px, py, TILE_B_HUD)
