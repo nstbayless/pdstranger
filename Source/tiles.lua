@@ -20,13 +20,14 @@ function draw_tile(x, y, tstring, tstate)
     local px, py = pcoord_of(x, y)
     
     -- draw cliff
-    if y < H then
+    if y < H - 1 then
         local cliff = base.cliff
         if type(cliff) == "function" then
             cliff = cliff(x, y, tstate)
         end
         if cliff then
-            if TILES[tile_at(x, y + 1)].transparent or true then
+            local below = TILES[tile_at(x, y + 1)]
+            if below and below.transparent then
                 draw_gfx(px, py + GH, TILE_CLIFF)
             end
         end

@@ -28,9 +28,8 @@ function handleInput(input)
     local player_x, player_y = tcoord_of(player.tidx)
     
     if input.type == "dir" then
-        neighbour = tile_at(player_x + input.dx, player_y + input.dy)
+        local neighbour = TILES[tile_at(player_x + input.dx, player_y + input.dy) or "wall"]
         
-        if not neighbour then neighbour = "wall" end
         if neighbour.pit then
             pushAction({type="coyote", e=player, dx=input.dx, dy=input.dy, t=0})
         else

@@ -1,11 +1,11 @@
 import "constants"
 
 function ENTS.octahedron.init(e)
-    e.state = "idle" or e.state
+    e.state = e.state or "idle"
 end
 
 function ENTS.player.init(e)
-    e.state = "s" or e.state
+    e.state = e.state or "s"
 end
 
 function entity_init(e)
@@ -49,7 +49,7 @@ function get_entity_move_blocker(e, dx, dy)
     local x, y = tcoord_of(e.tidx)
     local dstx, dsty = x + dx, y + dy
     
-    local tile = tile_at(dstx, dsty) or "wall"
+    local tile = TILES[tile_at(dstx, dsty) or "wall"]
     
     if tile.solid then
         return "stopped"
@@ -58,15 +58,16 @@ function get_entity_move_blocker(e, dx, dy)
         if not e2 then
             return nil
         else
-            if e2.solid then
+            local b, b2 = e.base, e2.base
+            if b2.solid then
                 return "stopped"
-            elseif e2.push then
+            elseif b2.push then
                 -- TODO -- pushing
-            elseif e2.enemy and e.enemy then
+            elseif b2.enemy and b.enemy then
                 return "stopped"
-            elseif e2.enemy and e.player then
+            elseif b2.enemy and b.player then
                 return "pdie"
-            elseif e2.player and e.enemy then
+            elseif b2.player and b.enemy then
                 return "pdie"
             end
         end
@@ -86,11 +87,13 @@ end
 
 function add_entity_moving_to(dstx, dsty, e)
     local tidx = tidx_of(dstx, dsty)
-    if not State.entity_moving_to[tidx] then
-        State.entity_moving_to[tidx] = {}
+    local movers = State.entity_moving_to[tidx]
+    if not movers then
+        movers = {}
+        State.entity_moving_to[tidx] = movers
     end
-    if not table.ihas(State.entity_moving_to, e) then
-        table.insert(State.entity_moving_to, e)
+    if not table.ihas(movers, e) then
+        table.insert(movers, e)
     end
 end
 
@@ -121,15 +124,16 @@ function entity_die(e, animation)
 end
 
 function entity_set_position(e, x, y)
-    tidx = x
+    local tidx = x
     if y then
         tidx = tidx_of(x, y)
     end
     
-    assert(not State.ents[tidx], "entities would superimpose!")
+    assert(tidx, "entity oob!")
+    assert(State.ents[tidx] == nil or State.ents[tidx] == e, "entities would superimpose!")
     
-    State.ents[tidx] = e
     State.ents[e.tidx] = nil
+    State.ents[tidx] = e
     e.tidx = tidx
 end
 

@@ -1,5 +1,5 @@
 function draw_gfx(px, py, gfxidx)
-    flip = (gfxidx < 0) and playdate.graphics.kImageFlippedX or nil
+    local flip = (gfxidx < 0) and playdate.graphics.kImageFlippedX or nil
     if flip then
         gfxidx *= -1
     end
