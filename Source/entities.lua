@@ -8,6 +8,12 @@ function ENTS.player.init(e)
     e.state = e.state or "s"
 end
 
+function add_entity_killing_player(e)
+    if not table.ihas(State.entity_killing_player, e) then
+        table.insert(State.entity_killing_player, e)
+    end
+end
+
 function ENTS.leech.update(e)
     local dx, dy = cardinal_to_dir(e.state)
     local x, y = tcoord_of(e.tidx)
@@ -18,7 +24,7 @@ function ENTS.leech.update(e)
         MOVE_FLAG_NO_PITS | MOVE_FLAG_NO_PUSH
     )
     if blocker == "pdie" then
-        table.insert(State.entity_killing_player, e)
+        add_entity_killing_player(e)
     elseif blocker ~= nil then
         -- turn around
         e.state = dir_to_cardinal(-dx, -dy)
@@ -226,6 +232,8 @@ function entity_execute_move(e)
                 entity_set_position(e, dstx, dsty)
             end
         end
+    elseif q.blocked == "pdie" then
+        add_entity_killing_player(q.e or e)
     elseif q.blocked == "push" then
         table.insert(State.entity_pushing, e)
         q.e.late_queued_move = {

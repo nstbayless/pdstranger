@@ -133,6 +133,7 @@ function processAction()
         if #State.entity_killing_player > 0 then
             local player = get_entity_by_basekey("player")
             entity_die(player)
+            State.entity_moves_pending = false
             State.explosions[player.tidx] = true
         end
         
