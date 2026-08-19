@@ -22,6 +22,8 @@ queuedInput = nil
 queuedInputFrames = 0
 actionQueue = {}
 
+local fade_pattern = nil
+
 function pushAction(a)
     table.insert(actionQueue, a)
     return a
@@ -51,12 +53,15 @@ function handleInput(input)
 end
 
 function player_death()
-    local deathFade = pushAction({type="fadeout", speed=1.0/0.9, t=0})
+    fade_pattern = randlist(32*32)
+    local t = GlobalState.void and VOIDFADE_TIME or LIVEFADE_TIME
+    local deathFade = pushAction({type="fadeout", speed=1.0/t, t=0})
     
     if not GlobalState.void and GlobalState.lives >= 1 then
         pushAction({type="lifeloss", speed=1.0/0.6, t=0})
         deathFade.lifeloss = true
     end
+    deathFade.voidfade = GlobalState.void
 end
 
 function push_secondary_animations()
@@ -243,7 +248,9 @@ function processAction()
             GlobalState.lives -= 1
         end
         load_brane(brane_path)
-        pushAction({type="fadein", t=0, speed=1.0/0.9, lifeloss=action.lifeloss})
+        local t = action.voidfade and VOIDFADE_TIME or LIVEFADE_TIME
+        pushAction({type="fadein", t=0, speed=1.0/t, lifeloss=action.lifeloss, voidfade=action.voidfade})
+        fade_pattern = randlist(32*32)
     elseif action.type == "move" then
         State.round += 1
         
@@ -319,7 +326,7 @@ function draw_special_animations()
         local buff = get_offscreen_buffer()
         playdate.graphics.pushContext(buff)
         
-        if fadein then
+        if fadein and action.voidfade then
             playdate.graphics.clear(playdate.graphics.kColorBlack)
             playdate.graphics.setColor(playdate.graphics.kColorClear)
         else
@@ -327,19 +334,28 @@ function draw_special_animations()
         end
         local t = action.t
         
+        local srf = get_rand32_srf(fade_pattern, fadein and (1-t) or t, action.lifeloss and playdate.graphics.kColorWhite or playdate.graphics.kColorBlack)
+        
         for x=-1,W do
             for y=-1,H do
-                if (x + y) % 2 == 0 then
-                    local px, py = pcoord_of(x, y)
-                    local p = math.max(t*2 - y/H, 0)
-                    px += 0.5 * GW
-                    py += 0.5 * GH
-                    playdate.graphics.fillPolygon(
-                        px + p * GW, py,
-                        px, py + p * GH,
-                        px - p * GW, py,
-                        px, py - p * GH
-                    )
+                local px, py = pcoord_of(x, y)
+                
+                if not action.voidfade then
+                    -- lifeloss fade
+                    srf:draw(x*32, y*32)
+                else
+                    -- void fade
+                    if (x + y) % 2 == 0 then
+                        local p = math.max(t*2 - y/H, 0)
+                        px += 0.5 * GW
+                        py += 0.5 * GH
+                        playdate.graphics.fillPolygon(
+                            px + p * GW, py,
+                            px, py + p * GH,
+                            px - p * GW, py,
+                            px, py - p * GH
+                        )
+                    end
                 end
             end
         end

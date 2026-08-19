@@ -40,7 +40,7 @@ function pathfind(x0, y0, x1, y1, bias)
     end
 
     if srcidx == dstidx then
-        return {srcidx}
+        return {}
     end
 
     local frontier = {srcidx}
@@ -63,7 +63,6 @@ function pathfind(x0, y0, x1, y1, bias)
                         table.insert(chain, 1, cur)
                         cur = predecessor[cur]
                     end
-                    table.insert(chain, 1, srcidx)
                     return chain
                 end
             end

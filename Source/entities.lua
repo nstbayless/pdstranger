@@ -1,7 +1,9 @@
 import "constants"
+import "pathfind"
 
 function ENTS.octahedron.init(e)
     e.state = e.state or "idle"
+    e.bias = "nswe"
 end
 
 function ENTS.beaver.init(e)
@@ -60,6 +62,33 @@ function ENTS.player.draw(e)
     end
     
     return false
+end
+
+function ENTS.octahedron.update(e, dx, dy)
+    local x,y = tcoord_of(e.tidx)
+    local player = get_player()
+    local path = nil
+    if player then
+        local dst_x, dst_y = tcoord_of(player.tidx)
+        path = pathfind(x, y, dst_x, dst_y, e.bias)
+        
+        if not path then
+            -- pathfind to player's previous location
+            path = pathfind(x, y, dst_x - dx, dst_y - dy)
+        end
+    end
+    
+    if path and path[1] then
+        local dstidx = path[1]
+        local dstx, dsty = tcoord_of(dstidx)
+        local dx = dstx - x
+        local dy = dsty - y
+        assert(math.abs(dx) + math.abs(dy) == 1, "first chain in path invalid")
+        entity_prepare_move(e, dx, dy)
+        e.state = "active"
+    else
+        e.state = "idle"
+    end
 end
 
 function ENTS.leech.update(e)
