@@ -41,6 +41,9 @@ end
 
 function push_secondary_animations()
     if not table.empty(State.explosions) or #State.entity_killing_player > 0 or #State.entity_pushing > 0 then
+        
+        -- TODO: different time depending on whether killing (long), explosions (med), or push (short)
+        
         pushAction({type="secondary", speed=1.0/SECONDARY_ANIMATIONS_TIME, t=0})
         return true
     end
@@ -154,7 +157,9 @@ function processAction()
         -- TODO: mimics go first
         
         if State.entity_moves_pending then
+            State.entity_moves_pending = false
             entities_round()
+            push_secondary_animations() 
         end
     end
 end

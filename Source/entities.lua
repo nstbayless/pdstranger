@@ -217,7 +217,14 @@ function entity_execute_move(e)
                 end
             end
 
-            entity_set_position(e, dstx, dsty)
+            -- entities over pit -- explode (for now)
+            local dsttile = TILES[tile_at(dstidx) or "wall"]
+            if dsttile.pit then
+                entity_die(e)
+                State.explosions[dstidx] = true
+            else
+                entity_set_position(e, dstx, dsty)
+            end
         end
     elseif q.blocked == "push" then
         table.insert(State.entity_pushing, e)
