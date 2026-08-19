@@ -260,7 +260,7 @@ ENTS = {
     smiler = {
         sym = {
             q="w",
-            p="e",
+            p="t",
         },
         enemy=true,
         anim={e={TSTRIDE*5 + 6, TSTRIDE*5 + 7}, w={-TSTRIDE*5 - 6, -TSTRIDE*5 - 7}},
@@ -288,7 +288,7 @@ ENTS = {
     },
     
     eye = {
-        sym = "e",
+        sym = "i",
         enemy=true,
         anim={TSTRIDE*6 + 6, TSTRIDE*6 + 7},
     },
@@ -387,3 +387,8 @@ XOFF = math.floor((400 - (W * GW)) / 2)
 YOFF = math.floor((240 - (H * GH)) / 2)
 
 FPS = 20
+
+DEFAULT_ACTION_SPEED = 14.3
+MAX_INPUT_QUEUE_FRAMES = 3
+MOVE_FLAG_NO_PITS = 1
+MOVE_FLAG_NO_PUSH = 2

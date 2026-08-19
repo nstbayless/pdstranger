@@ -8,6 +8,27 @@ function ENTS.player.init(e)
     e.state = e.state or "s"
 end
 
+function ENTS.leech.update(e)
+    local dx, dy = cardinal_to_dir(e.state)
+    local x, y = tcoord_of(e.tidx)
+    dstidx = tidx_of(x + dx, y + dy)
+    
+    local blocker = get_entity_move_blocker(
+        e, dx, dy,
+        MOVE_FLAG_NO_PITS | MOVE_FLAG_NO_PUSH
+    )
+    if blocker == "pdie" then
+        table.insert(State.entity_killing_player, e)
+    elseif blocker ~= nil then
+        -- turn around
+        e.state = dir_to_cardinal(-dx, -dy)
+    else
+        entity_prepare_move(e, dx, dy)
+    end
+end
+
+ENTS.maggot.update = ENTS.leech.update
+
 function entity_init(e)
     local base = e.base
     if e.base.init then
@@ -19,6 +40,9 @@ function draw_entity(e)
     local base = e.base
     local px, py = pcoord_of(e.tidx)
     
+    px += (e.offx or 0) * GW
+    py += (e.offy or 0) * GH
+    
     local anim = base.anim
     if type(anim) == "number" then
         draw_gfx(px, py, anim)
@@ -26,7 +50,7 @@ function draw_entity(e)
         if anim[1] then
             draw_anim(px, py, anim)
         else
-            anim = anim[e.state]
+            anim = anim[e.visible_state or e.state]
             if anim then
                 draw_anim(px, py, anim)
             end
@@ -45,13 +69,28 @@ function draw_entities()
     end
 end
 
-function get_entity_move_blocker(e, dx, dy)
+function can_push(e, dx, dy)
+    -- a pushed entity crushes whatever it lands on, so entities don't block it
+    local result = get_entity_move_blocker(
+        e, dx, dy,
+        MOVE_FLAG_NO_PUSH
+    )
+    return result == nil
+end
+
+-- returns nil if can move;
+-- returns string if something blocks
+-- second arg may indicate blocking entity
+function get_entity_move_blocker(e, dx, dy, flags)
+    flags = flags or 0
     local x, y = tcoord_of(e.tidx)
     local dstx, dsty = x + dx, y + dy
     
     local tile = TILES[tile_at(dstx, dsty) or "wall"]
     
     if tile.solid then
+        return "stopped"
+    elseif tile.pit and (flags & MOVE_FLAG_NO_PITS) ~= 0 then
         return "stopped"
     else
         local e2 = ent_at(dstx, dsty)
@@ -62,13 +101,22 @@ function get_entity_move_blocker(e, dx, dy)
             if b2.solid then
                 return "stopped"
             elseif b2.push then
-                -- TODO -- pushing
+                if (flags & MOVE_FLAG_NO_PUSH) ~= 0 then
+                    return "stopped"
+                end
+                if can_push(e2, dx, dy) then
+                    return "push", e2
+                else
+                    return "stopped"
+                end
             elseif b2.enemy and b.enemy then
                 return "stopped"
             elseif b2.enemy and b.player then
-                return "pdie"
+                return "pdie", e2
             elseif b2.player and b.enemy then
                 return "pdie"
+            else
+                return nil
             end
         end
     end
@@ -98,14 +146,14 @@ function add_entity_moving_to(dstx, dsty, e)
 end
 
 function entity_prepare_move(e, dx, dy)
-    local result = get_entity_move_blocker(e, dx, dy)
+    local result, result_e = get_entity_move_blocker(e, dx, dy)
     local x, y = tcoord_of(e.tidx)
     local dstx, dsty = x + dx, y + dy
     if result == nil then
         e.queued_move = {move=true, dx=dx, dy=dy}
         add_entity_moving_to(dstx, dsty, e)
     else
-        e.queued_move = {blocked=result}
+        e.queued_move = {blocked=result, e=result_e, dx=dx, dy=dy}
     end
 end
 
@@ -152,13 +200,70 @@ function entity_execute_move(e)
             entity_die(e)
             State.explosions[dstidx] = true
         else
+            if q.crush then
+                local crushee = ent_at(dstidx)
+                if crushee and crushee ~= e then
+                    entity_die(crushee)
+                    State.explosions[dstidx] = true
+                end
+            end
+
             entity_set_position(e, dstx, dsty)
         end
-    else
-        if e.base.onblock then
-            e.base.onblock(e)
-        end
+    elseif q.blocked == "push" then
+        table.insert(State.pushing_entities, e)
+        q.e.late_queued_move = {
+            move=true,
+            crush=true,
+            dx=q.dx, dy=q.dy
+        }
     end
     
     e.queued_move = nil
+end
+
+function execute_moves()
+    while true do
+        -- execute move
+        for tidx, e in pairs(table.copy(State.ents)) do
+            if e.queued_move then
+                entity_execute_move(e)
+            end
+        end
+        
+        entity_clear_movephase()
+        
+        -- check if anything to process
+        local any_late = false
+        for tidx, e in pairs(table.copy(State.ents)) do
+            if e.late_queued_move then
+                e.queued_move = e.late_queued_move
+                e.late_queued_move = nil
+                local q = e.queued_move
+                if q.move then
+                    local ex, ey = tcoord_of(e.tidx)
+                    local dstx, dsty = ex + q.dx, ey + q.dy
+                    add_entity_moving_to(dstx, dsty, e)
+                end
+                any_late = true
+            end
+        end
+        
+        if not any_late then
+            break
+        end
+    end
+end
+
+function entities_round(player_dx, player_dy)
+    State.player_dx = player_dx
+    State.player_dy = player_dy
+    
+    for tidx, e in pairs(table.copy(State.ents)) do
+        if e.base.update then
+            e.base.update(e)
+        end
+    end
+    
+    execute_moves()
 end

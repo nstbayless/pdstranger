@@ -12,10 +12,19 @@ State = {
     ents={},
     
     -- set tidx
+    -- TODO: respect this for animation
     explosions = {},
     
     -- map tidx -> list of entities intending to move there
     entity_moving_to={},
+    
+    -- list of entities who will kill the player this round
+    -- TODO: respect this for animation
+    entity_killing_player={},
+    
+    -- list of entities who have just pushed something
+    -- TODO: respect this for animation
+    pushing_entities={},
     
     frames_per_anim_tick = 13,
     
@@ -26,11 +35,13 @@ State = {
     frame_animation = 0,
     
     -- standard actions per second
-    action_speed = 5.3,
+    action_speed = DEFAULT_ACTION_SPEED,
     
-    -- increments once per player action
-    round = 1,
+    -- increments once at start of player action
+    round = 0,
 }
+
+CLEAN_STATE = table.deepcopy(State)
 
 function tick_frame()
     State.frame += 1

@@ -28,6 +28,18 @@ function printf(fmt, ...)
     print(string.format(fmt, ...))
 end
 
+function cardinal_to_dir(c)
+    if c == "n" then
+        return 0, -1
+    elseif c == "w" then
+        return -1, 0
+    elseif c == "e" then
+        return 1, 0
+    else
+        return 0, 1
+    end
+end
+
 function dir_to_cardinal(dx, dy)
     if dx == 1 then
         return "e"
@@ -56,4 +68,26 @@ function table.ihas(t, value)
         end
     end
     return false
+end
+
+function table.copy(original)
+  if type(original) ~= "table" then
+    return original
+  end
+  local copy = {}
+  for k, v in pairs(original) do
+    copy[k] = v
+  end
+  return copy
+end
+
+function table.deepcopy(original)
+  if type(original) ~= "table" then
+    return original
+  end
+  local copy = {}
+  for k, v in pairs(original) do
+    copy[k] = table.deepcopy(v)
+  end
+  return copy
 end
