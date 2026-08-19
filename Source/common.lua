@@ -1,3 +1,37 @@
+function draw_string(px, py, s)
+    for i=1,#s do
+        c = string.byte(string.sub(s, i, i))
+        
+        t = -1
+        
+        if c >= string.byte('A') and c <= string.byte('Z') then
+            t = c - string.byte('A')
+        end
+        
+        if c >= string.byte('0') and c <= string.byte('9') then
+            t = c - string.byte('0') + 26
+        end
+        
+        if c == "?" then
+            t = 36
+        end
+        
+        if c == "." then
+            t = 37
+        end
+        
+        if c == "," then
+            t = 38
+        end
+        
+        if t >= 0 then
+            FONT:drawImage(t + 1, px, py)
+        end
+        
+        px += GW/2
+    end
+end
+
 function draw_gfx(px, py, gfxidx)
     local flip = (gfxidx < 0) and playdate.graphics.kImageFlippedX or nil
     if flip then
@@ -97,4 +131,16 @@ function table.empty(t)
         return false
     end
     return true
+end
+
+local lbuff = nil
+
+function get_offscreen_buffer()
+    if not lbuff then
+        lbuff = playdate.graphics.image.new(400, 240)
+    end
+    playdate.graphics.pushContext(lbuff)
+    playdate.graphics.clear(playdate.graphics.kColorClear)
+    playdate.graphics.popContext()
+    return lbuff
 end

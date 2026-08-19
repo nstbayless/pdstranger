@@ -6,8 +6,9 @@ import "brane"
 import "parse"
 
 GFX = playdate.graphics.imagetable.new("tiles")
+FONT = playdate.graphics.imagetable.new("font")
 
-load_brane("b04")
+load_brane("branes/b04")
 playdate.display.setRefreshRate(20)
 
 queuedInput = nil
@@ -19,7 +20,7 @@ function pushAction(a)
 end
 
 function handleInput(input)
-    local player = get_entity_by_basekey("player")
+    local player = get_player()
     if not player then
         return
     end
@@ -36,7 +37,13 @@ function handleInput(input)
         else
             pushAction({type="move", e=player, dx=input.dx, dy=input.dy})
         end
+    elseif input.type == "act" then
+        pushAction({type="act"})
     end
+end
+
+function player_death()
+    pushAction({type="fadeout", speed=1.0/0.9, t=0})
 end
 
 function push_secondary_animations()
@@ -47,11 +54,18 @@ function push_secondary_animations()
         pushAction({type="secondary", speed=1.0/SECONDARY_ANIMATIONS_TIME, t=0})
         return true
     end
+    
+    local player = get_player()
+    if not player then
+        player_death()
+        return true
+    end
+    
     return false
 end
 
 function player_panic_animation()
-    local player = get_entity_by_basekey("player")
+    local player = get_player()
     if not player then return end
     player.visible_state = "panic"
     if not player.frame_animation then
@@ -67,7 +81,11 @@ function processAction()
     
     local action = actionQueue[#actionQueue]
     
+    
     if action.t and action.t < 1 then
+        
+        -- [[ in-progress actions ]] --
+        
         action.t += (action.speed or State.action_speed) / FPS
         action.t = math.min(action.t, 1)
         
@@ -98,6 +116,18 @@ function processAction()
                 e.frame_animation_speed = 10
             end
             
+            -- entities pushing
+            for tidx, e in pairs(State.entity_pushing) do
+                if not e.frame_animation then
+                    e.frame_animation = 0
+                end
+                e.frame_animation_speed = 10
+                local push_anim = "push" .. e.state
+                if e.base.anim[push_anim] then
+                    e.visible_state = push_anim
+                end
+            end
+            
             -- player death animation
             if #State.entity_killing_player > 0 then
                 player_panic_animation()
@@ -107,13 +137,63 @@ function processAction()
         return
     end
     
+    -- [[ completed actions ]] --
+    
     actionQueue[#actionQueue] = nil
     
-    if action.type == "move" then
+    if action.type == "act" then
+        local player = get_player()
+        player.rod_animation_timer = nil
+        local dx, dy = cardinal_to_dir(player.state)
+        local x, y = tcoord_of(player.tidx)
+        local e = ent_at(x + dx, y + dy)
+        local confusion = false
+        if e then
+            confusion = true
+        else
+            local dstidx = tidx_of(x + dx, y + dy)
+            if dstidx then
+                local tstring, state = tile_at(dstidx) or "wall"
+                
+                if State.rod_storage and TILES[tstring].pit then
+                    -- place in pit
+                    State.tiles[dstidx] = State.rod_storage.tstring
+                    State.tiles_state[dstidx] = State.rod_storage.state
+                    State.rod_storage = nil
+                    State.entity_moves_pending = true
+                    
+                    player.rod_animation_timer = 0.42
+                elseif not State.rod_storage and TILES[tstring].roddable then
+                    -- pick up tile
+                    State.rod_storage = {tstring=tstring, state=state}
+                    State.tiles[dstidx] = "void"
+                    State.tiles_state[dstidx] = nil
+                    
+                    State.entity_moves_pending = true
+                    player.rod_animation_timer = 0.35
+                else
+                    confusion = true
+                end
+            else
+                confusion = true
+            end
+        end
+        
+        if confusion then
+            pushAction({type="confused", t=0, speed = 1.0/0.5})
+        end
+    elseif action.type == "fadeout" then
+        -- completed fade out
+        local brane_path = State.path
+        reset_state()
+        load_brane(brane_path)
+        pushAction({type="fadein", t=0, speed=1.0/0.9})
+    elseif action.type == "move" then
         State.round += 1
         entity_clear_movephase()
         action.e.state = dir_to_cardinal(action.dx, action.dy)
         entity_prepare_move(action.e, action.dx, action.dy)
+        action.e.rod_animation_timer = nil
         execute_moves()
         
         State.entity_moves_pending = true
@@ -131,7 +211,7 @@ function processAction()
         end
         
         if #State.entity_killing_player > 0 then
-            local player = get_entity_by_basekey("player")
+            local player = get_player()
             entity_die(player)
             State.entity_moves_pending = false
             State.explosions[player.tidx] = true
@@ -140,7 +220,7 @@ function processAction()
         State.entity_killing_player = {}
         State.entity_pushing = {}
     elseif action.type == "fall-panic" then
-        local player = get_entity_by_basekey("player")
+        local player = get_player()
         entity_die(player)
         State.explosions[player.tidx] = true
     elseif action.type == "coyote" then
@@ -162,6 +242,52 @@ function processAction()
             entities_round()
             push_secondary_animations() 
         end
+    end
+end
+
+function draw_special_animations()
+    local action = actionQueue[#actionQueue]
+    if not action then return end
+    if action.type == "confused" then
+        if State.frame % 9 <= 5 then
+            local player = get_player()
+            if player then
+                local px, py = pcoord_of(player.tidx)
+                draw_gfx(px, py, TILE_QUESTION)
+            end
+        end
+    elseif action.type == "fadein" or action.type == "fadeout" then
+        local fadein = action.type == "fadein"
+        local buff = get_offscreen_buffer()
+        playdate.graphics.pushContext(buff)
+        
+        if fadein then
+            playdate.graphics.clear(playdate.graphics.kColorBlack)
+            playdate.graphics.setColor(playdate.graphics.kColorClear)
+        else
+            playdate.graphics.setColor(playdate.graphics.kColorBlack)
+        end
+        local t = action.t
+        
+        for x=-1,W do
+            for y=-1,H do
+                if (x + y) % 2 == 0 then
+                    local px, py = pcoord_of(x, y)
+                    local p = math.max(t*2 - y/H, 0)
+                    px += 0.5 * GW
+                    py += 0.5 * GH
+                    playdate.graphics.fillPolygon(
+                        px + p * GW, py,
+                        px, py + p * GH,
+                        px - p * GW, py,
+                        px, py - p * GH
+                    )
+                end
+            end
+        end
+        
+        playdate.graphics.popContext()
+        buff:draw(0, 0)
     end
 end
 
@@ -213,9 +339,15 @@ function playdate.update()
     draw_tiles()
     draw_explosions()
     draw_entities()
+    draw_special_animations()
     
     queuedInputFrames += 1
     tick_frame()
+end
+
+function playdate.AButtonDown()
+    queuedInput = {type="act"}
+    queuedInputFrames = 0
 end
 
 function playdate.downButtonDown()

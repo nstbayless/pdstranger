@@ -6,8 +6,8 @@ TILE_B_FLOOR = 2
 TILE_B_STAIRS = 3
 TILE_B_STAIRS_LOCKED = 4
 TILE_B_BUTTON = 5
-TILE_B_GLASS = 6
-TILE_B_GLASS_BROKEN = 7
+TILE_B_ICE = 6
+TILE_B_ICE_BROKEN = 7
 TILE_B_TRAP = 8
 TILE_B_EXPLO = 9
 TILE_B_SHADE = 10
@@ -19,6 +19,11 @@ TILE_HUD_ROD = 14
 TILE_HUD_BDN_MEMORY = 15
 TILE_HUD_BDN_WINGS = 16
 TILE_HUD_BDN_SWORD = 17
+
+TILE_ROD_BOX = TSTRIDE
+TILE_ROD_BOX_UNK = TSTRIDE + 1
+
+TILE_QUESTION = TSTRIDE + 14
 
 TILE_WALL_N = 2*TSTRIDE + 0
 TILE_WALL_W = 2*TSTRIDE + 1
@@ -45,11 +50,14 @@ TILES = {
         cliff=true,
         sym="+",
         anim=2,
+        rodbox = TILE_ROD_BOX + TILE_B_FLOOR,
+        roddable=true,
     },
     
     stair = {
         cliff=true,
         stair=true,
+        roddable=true,
         sym="/",
         anim={
             on=3,
@@ -60,6 +68,8 @@ TILES = {
     button = {
         cliff=true,
         button=true,
+        roddable=true,
+        rodbox = TILE_ROD_BOX + TILE_B_BUTTON,
         sym="@",
         anim=5,
     },
@@ -67,6 +77,8 @@ TILES = {
     ice = {
         sym="#",
         ice=true,
+        roddable=true,
+        rodbox = TILE_ROD_BOX + TILE_B_ICE,
         transparent=true,
         anim={
             on=6,
@@ -76,27 +88,35 @@ TILES = {
     
     trap = {
         trap=true,
+        rodbox = TILE_ROD_BOX + TILE_B_TRAP,
+        roddable=true,
         sym="%",
         anim=8,
     },
     
     explo = {
         explo=true,
+        roddable=true,
+        rodbox = TILE_ROD_BOX + TILE_B_EXPLO,
         sym="*",
         anim=9,
     },
     
     shade = {
         shade=true,
+        roddable=true,
         cliff=true,
         sym="$",
         anim=10,
+        rodbox = TILE_ROD_BOX + TILE_B_SHADE,
     },
     
     death = {
         death=true,
+        roddable=true,
         sym="!",
         anim=11,
+        rodbox = TILE_ROD_BOX + TILE_B_DEATH,
     },
     
     wall = {
@@ -152,7 +172,8 @@ TILES = {
     },
     
     hud = {
-        anim = TILE_B_HUD
+        anim = TILE_B_HUD,
+        roddable=true,
     }
 }
 
@@ -217,10 +238,14 @@ ENTS = {
             urw = 3*TSTRIDE + 9,
             urs = 3*TSTRIDE + 10,
             urn = 3*TSTRIDE + 11,
-            rode = 3*TSTRIDE + 12,
-            rodw = 3*TSTRIDE + 13,
-            rods = 3*TSTRIDE + 14,
-            rodn = 3*TSTRIDE + 15,
+            rode = 1*TSTRIDE + 16,
+            rodw = 1*TSTRIDE + 17,
+            rods = 1*TSTRIDE + 18,
+            rodn = 1*TSTRIDE + 19,
+            pushe = 3*TSTRIDE + 12,
+            pushw = 3*TSTRIDE + 13,
+            pushs = 3*TSTRIDE + 14,
+            pushn = 3*TSTRIDE + 15,
             panic = {3*TSTRIDE + 16, 3*TSTRIDE + 17}
         }
     },
@@ -261,7 +286,7 @@ ENTS = {
     smiler = {
         sym = {
             q="w",
-            p="t",
+            p="e",
         },
         enemy=true,
         anim={e={TSTRIDE*5 + 6, TSTRIDE*5 + 7}, w={-TSTRIDE*5 - 6, -TSTRIDE*5 - 7}},
@@ -389,7 +414,7 @@ YOFF = math.floor((240 - (H * GH)) / 2)
 
 FPS = 20
 
-DEFAULT_ACTION_SPEED = 14.3
+DEFAULT_ACTION_SPEED = 5.3
 MAX_INPUT_QUEUE_FRAMES = 3
 MOVE_FLAG_NO_PITS = 1
 MOVE_FLAG_NO_PUSH = 2

@@ -1,16 +1,16 @@
 import "constants"
 import "brane"
 
-function load_brane(name)
-    local path = "branes/" .. name
+function load_brane(path)
     local file = playdate.file.open(path, playdate.file.kFileRead)
     if not file then
         error("brane not found: " .. path)
     end
-
-    -- clear state
+    
+    -- clear relevant state
     State.tiles = {}
     State.ents = {}
+    State.path = path
 
     local lines = {}
     while true do

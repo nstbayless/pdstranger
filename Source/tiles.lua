@@ -8,10 +8,55 @@ function TILES.stair.get_animkey()
     return "on"
 end
 
+function TILES.stair.rodbox()
+    if TILES.stair.get_animkey() == "off" then
+        return TILE_ROD_BOX + TILE_B_STAIRS_LOCKED
+    else
+        return TILE_ROD_BOX + TILE_B_STAIRS
+    end
+end
+
 function TILES.wall.cliff(x, y, tstate)
     if string.sub(tstate, #tstate) == "2" then
         return false
     end
+    return true
+end
+
+function TILES.hud.rodbox(tstate)
+    if not tstate then
+        return TILE_ROD_BOX + TILE_B_HUD
+    elseif tstate == "_locust" then
+        return TILE_ROD_BOX + TILE_HUD_LOCUST
+    else
+        return nil
+    end
+end
+
+function TILES.hud.draw(x, y, tstate)
+    local px, py = pcoord_of(x, y)
+    draw_gfx(px, py, TILE_B_HUD)
+    
+    if tstate == "_memento" then
+    elseif tstate == "_locust" then
+        draw_gfx(px, py, TILE_HUD_LOCUST)
+    elseif tstate == "_rod" then
+        draw_gfx(px, py, TILE_HUD_ROD)
+        if State.rod_storage then
+            local rbase = TILES[State.rod_storage.tstring]
+            local rstate = State.rod_storage.state
+            if type(rbase.rodbox) == "number" then
+                draw_gfx(px, py, rbase.rodbox or TILE_ROD_BOX_UNK)
+            elseif type(rbase.rodbox) == "function" then
+                draw_gfx(px, py, rbase.rodbox(rstate) or TILE_ROD_BOX_UNK)
+            else
+                draw_gfx(px, py, TILE_ROD_BOX_UNK)
+            end
+        end
+    elseif type(tstate) == "string" then
+        draw_string(px, py, tstate)
+    end
+    
     return true
 end
 
@@ -31,6 +76,11 @@ function draw_tile(x, y, tstring, tstate)
                 draw_gfx(px, py + GH, TILE_CLIFF)
             end
         end
+    end
+    
+    -- custom draw
+    if base.draw and base.draw(x, y, tstate) then
+        return
     end
     
     -- draw tile

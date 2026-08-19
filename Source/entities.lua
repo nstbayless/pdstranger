@@ -8,10 +8,26 @@ function ENTS.player.init(e)
     e.state = e.state or "s"
 end
 
-function add_entity_killing_player(e)
-    if not table.ihas(State.entity_killing_player, e) then
-        table.insert(State.entity_killing_player, e)
+function ENTS.player.draw(e)
+    local px, py = pcoord_of(e.tidx)
+    
+    if e.rod_animation_timer then
+        
+        e.rod_animation_timer -= 1.0/FPS
+        if e.rod_animation_timer <= 0 then
+            e.rod_animation_timer = nil
+        end
+        
+        local anim_ur = e.base.anim["ur" .. e.state]
+        local anim_rod = e.base.anim["rod" .. e.state]
+        local dx, dy = cardinal_to_dir(e.state)
+        draw_anim(px, py, anim_ur, e.frame_animation)
+        draw_anim(px + dx * GW, py + dy * GH, anim_rod, e.frame_animation)
+        
+        return true
     end
+    
+    return false
 end
 
 function ENTS.leech.update(e)
@@ -35,6 +51,58 @@ end
 
 ENTS.maggot.update = ENTS.leech.update
 
+function ENTS.smiler.update(e)
+    local player = get_player()
+    if not player then
+        return
+    end
+    
+    local x, y = tcoord_of(e.tidx)
+    
+    local player_x, player_y = tcoord_of(player.tidx)
+    
+    local dx = 0
+    local dy = 0
+    
+    if player_y == y and player_x < x then
+        dx = -1
+    elseif player_y == y and player_x > x then
+        dx = 1
+    elseif player_x == x and player_y < y then
+        dy = -1
+    elseif player_x == x and player_y > y then
+        dy = 1
+    end
+    
+    if dx ~= 0 or dy ~= 0 then
+        local blocker = get_entity_move_blocker(
+            e, dx, dy,
+            MOVE_FLAG_NO_PUSH
+        )
+        if blocker == "pdie" then
+            add_entity_killing_player(e)
+            if dx < 0 then
+                e.state = "w"
+            elseif dx > 0 then
+                e.state = "e"
+            end
+        elseif blocker == nil then
+            if dx < 0 then
+                e.state = "w"
+            elseif dx > 0 then
+                e.state = "e"
+            end
+            entity_prepare_move(e, dx, dy)
+        end
+    end
+end
+
+function add_entity_killing_player(e)
+    if not table.ihas(State.entity_killing_player, e) then
+        table.insert(State.entity_killing_player, e)
+    end
+end
+
 function entity_init(e)
     local base = e.base
     if e.base.init then
@@ -49,6 +117,10 @@ function draw_entity(e)
     px += (e.offx or 0) * GW
     py += (e.offy or 0) * GH
     
+    if e.base.draw and e.base.draw(e) then
+        return
+    end
+    
     local anim = base.anim
     if type(anim) == "number" then
         draw_gfx(px, py, anim)
@@ -56,7 +128,8 @@ function draw_entity(e)
         if anim[1] then
             draw_anim(px, py, anim, e.frame_animation)
         else
-            anim = anim[e.visible_state or e.state]
+            local state = e.visible_state or e.state
+            anim = anim[state]
             if anim then
                 draw_anim(px, py, anim, e.frame_animation)
             end
@@ -159,8 +232,8 @@ function add_entity_moving_to(dstx, dsty, e)
     end
 end
 
-function entity_prepare_move(e, dx, dy)
-    local result, result_e = get_entity_move_blocker(e, dx, dy)
+function entity_prepare_move(e, dx, dy, flags)
+    local result, result_e = get_entity_move_blocker(e, dx, dy, flags)
     local x, y = tcoord_of(e.tidx)
     local dstx, dsty = x + dx, y + dy
     if result == nil then
@@ -169,6 +242,10 @@ function entity_prepare_move(e, dx, dy)
     else
         e.queued_move = {blocked=result, e=result_e, dx=dx, dy=dy}
     end
+end
+
+function get_player()
+    return get_entity_by_basekey("player")
 end
 
 function get_entity_by_basekey(basekey)

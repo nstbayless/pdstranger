@@ -11,19 +11,19 @@ State = {
     -- map tidx -> ent object
     ents={},
     
+    rod_storage = nil,
+    
     -- set tidx
-    -- TODO: respect this for animation
     explosions = {},
     
     -- map tidx -> list of entities intending to move there
     entity_moving_to={},
     
     -- list of entities who will kill the player this round
-    -- TODO: respect this for animation
     entity_killing_player={},
     
-    -- list of entities who have just pushed something
-    -- TODO: respect this for animation
+    -- list of entities who have just pushed something,
+    -- or are in some other animation
     entity_pushing={},
     
     frames_per_anim_tick = 13,
@@ -39,6 +39,15 @@ State = {
     
     -- increments once at start of player action
     round = 0,
+    
+    void = false,
+    hp = 7,
+    lives = 0,
+    brane_number = 1,
+    memento = false,
+    
+    -- path to brane file
+    path = nil,
 }
 
 CLEAN_STATE = table.deepcopy(State)
@@ -138,10 +147,73 @@ function load_object(x, y, glyph)
     end
 end
 
+function reset_state()
+    State = table.deepcopy(CLEAN_STATE)
+end
+
+local INTERFACE_TILES = {
+    "memento",
+    "HP0",
+    "HP1",
+    false,
+    
+    "LOC0",
+    "LOC1",
+    false,
+    "rod",
+    
+    false,
+    "i0",
+    "i1",
+    "i2",
+    
+    "i3",
+    false,
+    "b0",
+    "b1",
+}
+
 function load_hud()
     for x=0,W-1 do
-        tidx = tidx_of(x, H-1)
+        local tidx = tidx_of(x, H-1)
         State.tiles[tidx] = 'hud'
-        State.tiles_state[tidx] = nil
+        local tstate = nil
+        local itile = INTERFACE_TILES[x+1]
+        
+        if itile == "memento" then
+            tstate = "_memento"
+        elseif itile == "HP0" then
+            if State.void then
+                tstate = "VO"
+            else
+                tstate = "HP"
+            end
+        elseif itile == "HP1" then
+            if State.void then
+                tstate = "ID"
+            else
+                tstate = string.format("%02d", math.min(State.hp, 99) % 100 % 100)
+            end
+        elseif itile == "LOC0" then
+            tstate = "_locust"
+        elseif itile == "LOC1" then
+            tstate = string.format("%02d", math.min(State.lives, 99) % 100)
+        elseif itile == "rod" then
+            tstate = "_rod"
+        elseif itile == "b0" then
+            if State.brane_number then
+                tstate = string.format("B%0d", math.floor(State.brane_number/100)%10)
+            else
+                tstate = "B?"
+            end
+        elseif itile == "b1" then
+            if State.brane_number then
+                tstate = string.format("%02d", State.brane_number%100)
+            else
+                tstate = "??"
+            end
+        end
+        
+        State.tiles_state[tidx] = tstate
     end
 end
