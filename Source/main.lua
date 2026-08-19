@@ -15,10 +15,8 @@ GlobalState = {
 GFX = playdate.graphics.imagetable.new("tiles")
 FONT = playdate.graphics.imagetable.new("font")
 
-load_brane("branes/b04")
+load_brane("branes/b004")
 playdate.display.setRefreshRate(20)
-
-push_dialogue("What's this?? Something feels wrong...")
 
 queuedInput = nil
 queuedInputFrames = 0
@@ -62,11 +60,21 @@ function player_death()
 end
 
 function push_secondary_animations()
-    if not table.empty(State.explosions) or #State.entity_killing_player > 0 or #State.entity_pushing > 0 then
-        
+    local t = 0
+    if not table.empty(State.explosions) then
+        t = math.max(t, EXPLODE_TIME)
+    end
+    if #State.entity_killing_player > 0 then
+        t = math.max(t, KILLPLAYER_TIME)
+    end
+    if #State.entity_pushing > 0 then
+        t = math.max(t, PUSH_TIME)
+    end
+    
+    if t > 0 then
         -- TODO: different time depending on whether killing (long), explosions (med), or push (short)
         
-        pushAction({type="secondary", speed=1.0/SECONDARY_ANIMATIONS_TIME, t=0})
+        pushAction({type="secondary", speed=1.0/t, t=0})
         return true
     end
     
@@ -164,7 +172,12 @@ function processAction()
         local e = ent_at(x + dx, y + dy)
         local confusion = false
         if e then
-            confusion = true
+            local result = entity_interact(e, player, dx, dy)
+            if not result then
+                confusion = true
+            elseif result == 2 then
+                State.entity_moves_pending = true
+            end
         else
             local dstidx = tidx_of(x + dx, y + dy)
             if dstidx then

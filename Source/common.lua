@@ -38,6 +38,10 @@ function draw_string(px, py, s, flags)
             t = 38
         end
         
+        if c == string.byte("!") then
+            t = 39
+        end
+        
         if t >= 0 then
             FONT:drawImage(t + 1, px, py)
         end
@@ -159,4 +163,9 @@ function get_offscreen_buffer()
     playdate.graphics.clear(playdate.graphics.kColorClear)
     playdate.graphics.popContext()
     return lbuff
+end
+
+function string_to_number(s)
+    if type(s) ~= "string" then return nil end
+    return tonumber(s)
 end

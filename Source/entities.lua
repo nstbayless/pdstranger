@@ -97,6 +97,50 @@ function ENTS.smiler.update(e)
     end
 end
 
+function ENTS.chest.interact(e, ei, dx, dy)
+    if dy == -1 then
+        if e.state == "on" then
+            e.state = "off"
+            local nloc = e.count or 1
+            
+            if nloc <= 0 then
+                push_dialogue("Empty.")
+            elseif nloc == 1 then
+                success = gainLife()
+                if not success then
+                    push_dialogue("Huh!? Where did it go..?")
+                else
+                    if not GlobalState.hasGottenLocust then
+                        GlobalState.hasGottenLocust = true
+                        if GlobalState.void then
+                            push_dialogue("You found a locust idol!\nIt looks kind of tasty...")
+                        else
+                            push_dialogue("You found a locust idol!")
+                            push_dialogue("Perhaps it will come in handy in the long run?")
+                        end
+                    end
+                end
+            else
+                success = gainLife(nloc)
+                if not success then
+                    push_dialogue("Huh!? Where did they go..?")
+                else
+                    if not GlobalState.hasGottenLocustLucky then
+                        GlobalState.hasGottenLocustLucky = true
+                        push_dialogue(string.format("L U C K Y ! !"))
+                    end
+                end
+            end
+        else
+            return false
+        end
+        
+        -- TODO: 'acquire' animation
+        ei.state = "s"
+        return 1
+    end
+end
+
 function add_entity_killing_player(e)
     if not table.ihas(State.entity_killing_player, e) then
         table.insert(State.entity_killing_player, e)
@@ -230,6 +274,16 @@ function add_entity_moving_to(dstx, dsty, e)
     if not table.ihas(movers, e) then
         table.insert(movers, e)
     end
+end
+
+-- return false if no interaction available
+-- returns 1 if successful interaction
+-- returns 2 if successful interaction that counts as a turn
+function entity_interact(e, ei, dx, dy)
+    if e.base.interact then
+        return e.base.interact(e, ei, dx, dy)
+    end
+    return false
 end
 
 function entity_prepare_move(e, dx, dy, flags)

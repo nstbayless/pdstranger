@@ -214,3 +214,60 @@ function load_hud()
         State.tiles_state[tidx] = tstate
     end
 end
+
+function find_hud_tidx(state)
+    for i = 1,TIDX_MAX do
+        
+    end
+end
+
+function tile_in_storage(tstring, state)
+    if State.rod_storage == nil then
+        return false
+    elseif State.rod_storage.tstring == tstring then
+        if not state or State.rod_storage.state == state then
+            return true
+        end
+    end
+    return false
+end
+
+function find_tile(tstring, state)
+    for i=1,TIDX_MAX do
+        if State.tiles[i] == tstring then
+            if State.tiles_state[i] == state or not state then
+                return i
+            end
+        end
+    end
+    return nil
+end
+
+-- returns true if successful
+function gainLife(n)
+    n = n or 1
+    
+    local tidx = find_tile("hud", "_locust")
+    
+    if not tidx and not tile_in_storage("hud", "_locust") then
+        -- no normal HUD here, can gain specially.
+        GlobalState.lives += n
+        return true
+    else
+        -- check HUD tile count
+        local x,y = tcoord_of(tidx)
+        local ntidx = tidx_of(x + 1, y)
+        if ntidx then
+            local nt, ntstate = tile_at(ntidx)
+            if nt == "hud" then
+                local nloc = string_to_number(ntstate)
+                if nloc then
+                    -- adjacent to HUD tile with locust count
+                    GlobalState.lives = nloc + n
+                    State.tiles_state[ntidx] = string.format("%02d", GlobalState.lives)
+                    return true
+                end
+            end
+        end
+    end
+end

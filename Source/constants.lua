@@ -285,6 +285,7 @@ ENTS = {
             g="off",
         },
         solid=true,
+        chest=true,
         anim={on=TSTRIDE*4 + 11, off=TSTRIDE*4 + 12},
     },
     
@@ -444,3 +445,7 @@ MOVE_FLAG_NO_PUSH = 2
 
 -- in seconds
 SECONDARY_ANIMATIONS_TIME = 0.6
+
+KILLPLAYER_TIME = 0.7
+EXPLODE_TIME = 0.2
+PUSH_TIME = 0.4

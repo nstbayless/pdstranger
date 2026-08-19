@@ -52,11 +52,17 @@ function dialogue_word_wrap(d, w)
 		else
 			-- Word-wrap the paragraph to w columns
 			local current = {}
+			local len = 0
 			for word in paragraph:gmatch("[^%s]+") do
-				if #current > 0 and #current[#current] + 1 + #word > w then
+				if #current > 0 and len + 1 + #word > w then
 					table.insert(lines, table.concat(current, " "))
 					current = {}
+					len = 0
 				end
+				if #current > 0 then
+					len += 1
+				end
+				len += #word
 				table.insert(current, word)
 			end
 			if #current > 0 then
@@ -73,13 +79,19 @@ function tick_dialogue()
     local d = in_dialogue()
     if not d then return end
     
-    dialogue_word_wrap(d, (W-2)*2)
+    dialogue_word_wrap(d, (W-2)*2 + 1)
     if #d.lines > 0 then
         assert(type(d.lines[1]) == "string")
     end
     
+    local confirm = false
+    if queuedInput then
+        confirm = queuedInput.type == "act"
+        queuedInput = nil
+    end
+    
     if d.wait then
-        if playdate.buttonIsPressed(playdate.kButtonA) then
+        if confirm then
             d.wait = false
             if d.l >= #d.lines then
                 table.remove(dialogueQueue, 1)
@@ -91,15 +103,15 @@ function tick_dialogue()
     elseif d.c < #d.lines[d.l] then
         d.c += 1
         if d.c == #d.lines[d.l] then
-            -- next line
-            d.c = 0
-            
             if #d.lines == d.l then
                 d.wait = true
             elseif d.l % 2 == 0 then
                 d.wait = true
             else
+                -- next line; only reset the cursor when the line advances,
+                -- or the finished line draws as an empty substring
                 d.l += 1
+                d.c = 0
             end
         end
     end
@@ -118,14 +130,12 @@ function draw_dialogue()
     py += 0.5*GH
     
     local line_scroll = math.floor((d.l-1) / 2)*2
-    for i = line_scroll+1,math.min(#d.lines, line_scroll+2) do
+    for i = line_scroll+1,math.min(d.l, line_scroll+2) do
         local c = d.c
         local line = d.lines[i]
-        print(line)
         if i < d.l then
             c = #line
         end
-        print(px, py)
         draw_string(px, py, string.sub(line, 1, c), K_TEXT_WHITE)
         py += GH
     end

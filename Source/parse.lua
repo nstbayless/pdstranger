@@ -11,6 +11,14 @@ function load_brane(path)
     State.tiles = {}
     State.ents = {}
     State.path = path
+    State.brane_number = nil
+    
+    for i=0,255 do
+        if path == string.format("branes/b%03d", i) then
+            State.brane_number = i
+            break
+        end
+    end
 
     local lines = {}
     while true do
