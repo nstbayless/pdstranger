@@ -154,27 +154,7 @@ function ENTS.beaver.update(e)
         end
         
         if dx ~= 0 or dy ~= 0 then
-            
-            -- check if intervening object blocks line-of-sight
-            local cx = x + dx
-            local cy = y + dy
-            local obstacle = false
-            while (cx ~= player_x or cy ~= player_y) do
-                local tile = tile_at(cx, cy)
-                local e = ent_at(cx, cy)
-                if not tile or TILES[tile].solid then
-                    obstacle = true
-                    break
-                end
-                if e then
-                    obstacle = true
-                    break
-                end
-                cx += dx
-                cy += dy
-            end
-            
-            if not obstacle then
+            if has_line_of_sight(x + dx, y + dy, player_x, player_y) then
                 local blocker = get_entity_move_blocker(
                     e, dx, dy,
                     MOVE_FLAG_NO_PUSH | MOVE_FLAG_NO_PITS | MOVE_FLAG_IGNORE_PLAYER

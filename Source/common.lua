@@ -169,3 +169,9 @@ function string_to_number(s)
     if type(s) ~= "string" then return nil end
     return tonumber(s)
 end
+
+function sign(a)
+    if a > 0 then return 1
+    elseif a < 0 then return -1
+    else return 0 end
+end

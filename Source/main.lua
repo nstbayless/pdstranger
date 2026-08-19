@@ -15,7 +15,7 @@ GlobalState = {
 GFX = playdate.graphics.imagetable.new("tiles")
 FONT = playdate.graphics.imagetable.new("font")
 
-load_brane("branes/b006")
+load_brane("branes/b005")
 playdate.display.setRefreshRate(20)
 
 queuedInput = nil
@@ -202,7 +202,8 @@ function processAction()
         else
             local dstidx = tidx_of(x + dx, y + dy)
             if dstidx then
-                local tstring, state = tile_at(dstidx) or "wall"
+                local tstring, state = tile_at(dstidx)
+                tstring = tstring or "wall"
                 
                 if State.rod_storage and TILES[tstring].pit then
                     -- place in pit

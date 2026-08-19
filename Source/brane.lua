@@ -243,6 +243,34 @@ function find_tile(tstring, state)
     return nil
 end
 
+function has_line_of_sight(x0, y0, x1, y1)
+    
+    -- must be orthogonal
+    if x0 ~= x1 and y0 ~= y1 then
+        return false
+    end
+    
+    dx = sign(x1 - x0)
+    dy = sign(y1 - y0)
+    local cx = x0 + dx
+    local cy = y0 + dy
+    local obstacle = false
+    while (cx ~= x1 or cy ~= y1) do
+        local tile = tile_at(cx, cy)
+        local e = ent_at(cx, cy)
+        if not tile or TILES[tile].solid then
+            return false
+        end
+        if e then
+            return false
+        end
+        cx += dx
+        cy += dy
+    end
+    
+    return true
+end
+
 -- returns true if successful
 function gainLife(n)
     n = n or 1
