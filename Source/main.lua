@@ -42,7 +42,9 @@ end
 function push_secondary_animations()
     if not table.empty(State.explosions) or #State.entity_killing_player > 0 or #State.entity_pushing > 0 then
         pushAction({type="secondary", speed=1.0/SECONDARY_ANIMATIONS_TIME, t=0})
+        return true
     end
+    return false
 end
 
 function player_panic_animation()
@@ -111,7 +113,7 @@ function processAction()
         entity_prepare_move(action.e, action.dx, action.dy)
         execute_moves()
         
-        entities_round(action.dx, action.dy)
+        State.entity_moves_pending = true
     elseif action.type == "secondary" then
         State.explosions = {}
         
@@ -148,7 +150,13 @@ function processAction()
         pushAction({type="fall-panic", t=0, speed=1.0/SECONDARY_ANIMATIONS_TIME})
     end
     
-    push_secondary_animations()
+    if not push_secondary_animations() then
+        -- TODO: mimics go first
+        
+        if State.entity_moves_pending then
+            entities_round()
+        end
+    end
 end
 
 function draw_explosions()
