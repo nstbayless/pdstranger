@@ -1,6 +1,7 @@
 TSTRIDE = 20
 
 TILE_B_VOID = 0
+TILE_CLIFF = 1
 TILE_B_FLOOR = 2
 TILE_B_STAIRS = 3
 TILE_B_STAIRS_LOCKED = 4
@@ -36,14 +37,19 @@ TILES = {
     void = {
         sym=" ",
         anim=0,
+        transparent=true,
+        pit=true,
     },
     
     floor = {
+        cliff=true,
         sym="+",
         anim=2,
     },
     
     stair = {
+        cliff=true,
+        stair=true,
         sym="/",
         anim={
             on=3,
@@ -52,12 +58,16 @@ TILES = {
     },
     
     button = {
+        cliff=true,
+        button=true,
         sym="@",
         anim=5,
     },
     
     ice = {
         sym="#",
+        ice=true,
+        transparent=true,
         anim={
             on=6,
             off=7,
@@ -65,26 +75,32 @@ TILES = {
     },
     
     trap = {
+        trap=true,
         sym="%",
         anim=8,
     },
     
     explo = {
+        explo=true,
         sym="*",
         anim=9,
     },
     
     shade = {
+        shade=true,
+        cliff=true,
         sym="$",
         anim=10,
     },
     
     death = {
+        death=true,
         sym="!",
         anim=11,
     },
     
     wall = {
+        solid=true,
         sym={
             ["^"]="n",
             ["v"]="s",
@@ -124,8 +140,8 @@ TILES = {
             w2=2*TSTRIDE + 9,
             s2=2*TSTRIDE + 10,
             e2=2*TSTRIDE + 11,
-            wn=2*TSTRIDE + 12,
-            en=2*TSTRIDE + 13,
+            en=2*TSTRIDE + 12,
+            wn=2*TSTRIDE + 13,
             ws=2*TSTRIDE + 14,
             es=2*TSTRIDE + 15,
             wn2=2*TSTRIDE + 16,
@@ -134,6 +150,10 @@ TILES = {
             es2=2*TSTRIDE + 19,
         }
     },
+    
+    hud = {
+        anim = TILE_B_HUD
+    }
 }
 
 ENTS = {
@@ -187,6 +207,7 @@ ENTS = {
     
     player = {
         sym=":",
+        player = true,
         anim = {
             e = {3*TSTRIDE + 0, 3*TSTRIDE + 4},
             w = {3*TSTRIDE + 1, 3*TSTRIDE + 5},
@@ -211,8 +232,8 @@ ENTS = {
     
     chest = {
         sym = {
-            C="on",
-            c="off",
+            c="on",
+            g="off",
         },
         solid=true,
         anim={on=TSTRIDE*4 + 11, off=TSTRIDE*4 + 12},
@@ -341,7 +362,7 @@ for key, e in pairs(ENTS) do
     OBJLOOKUP[key] = e
 end
 
-for key, obj in OBJLOOKUP do
+for key, obj in pairs(OBJLOOKUP) do
     if type(obj.sym) == "string" then
         OBJLOOKUP_BY_GLYPH[obj.sym]={key=key, config=nil}
     elseif type(obj.sym) == "table" then
@@ -351,11 +372,18 @@ for key, obj in OBJLOOKUP do
     end
 end
 
+assert(OBJLOOKUP_BY_GLYPH[' '], "no ' '-gylph registered (void)")
+
 W = math.floor(400/24)
 H = math.floor(240/24)
+
+TIDX_MAX = W*H
 
 -- grid size
 GW = 24
 GH = 24
+
+XOFF = math.floor((400 - (W * GW)) / 2)
+YOFF = math.floor((240 - (H * GH)) / 2)
 
 FPS = 20
