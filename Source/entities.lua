@@ -42,6 +42,45 @@ ENTS.mimx.update = ENTS.mim.update
 ENTS.mimy.update = ENTS.mim.update
 ENTS.mimxy.update = ENTS.mim.update
 
+-- tidx of cell entity is facing
+function entity_facing_tidx(e)
+    local x, y = tcoord_of(e.tidx)
+    local dx, dy = cardinal_to_dir(e.state)
+    return tidx_of(x + dx, y + dy)
+end
+
+function shades_pending()
+    for _, e in pairs(State.ents) do
+        if e.next_facing then
+            return true
+        end
+    end
+    return false
+end
+
+function ENTS.shade.update(e)
+    local facing = e.next_facing
+    if not facing then
+        return
+    end
+    
+    -- shade in front (blocking)
+    local tidx = entity_facing_tidx(e)
+    it tidx then
+        local e2 = State.ents[tidx]
+        if e2 ~= nil and e2.base.shade == true then
+            return
+        end
+    end
+
+    State.shades_advanced = true
+    e.next_facing = nil
+
+    local dx, dy = cardinal_to_dir(e.state)
+    entity_prepare_move(e, dx, dy, MOVE_FLAG_IGNORE_SHADES | MOVE_FLAG_IGNORE_PLAYER)
+    e.state = dir_to_cardinal(facing.dx, facing.dy)
+end
+
 function ENTS.player.draw(e)
     local px, py = pcoord_of(e.tidx)
     
@@ -263,7 +302,7 @@ function add_entity_killing_player(e)
 end
 
 function entity_init(e)
-    local base = e.base
+    e.base = ENTS[e.basekey]
     if e.base.init then
         e.base.init(e)
     end
@@ -319,7 +358,7 @@ function can_push(e, dx, dy)
     -- a pushed entity crushes whatever it lands on, so entities don't block it
     local result = get_entity_move_blocker(
         e, dx, dy,
-        MOVE_FLAG_NO_PUSH
+        MOVE_FLAG_NO_PUSH | MOVE_FLAG_NO_PUSHBLOCKER
     )
     return result == nil
 end
@@ -346,6 +385,10 @@ function get_entity_move_blocker(e, dx, dy, flags)
             local b, b2 = e.base, e2.base
             if b2.solid then
                 return "stopped"
+            elseif b2.shade and (flags & MOVE_FLAG_IGNORE_SHADES) ~= 0 then
+                return nil
+            elseif b2.pushblocker and (flags & MOVE_FLAG_NO_PUSHBLOCKER) ~= 0 then
+                return "stopped"
             elseif b2.push then
                 if (flags & MOVE_FLAG_NO_PUSH) ~= 0 then
                     return "stopped"
@@ -357,7 +400,7 @@ function get_entity_move_blocker(e, dx, dy, flags)
                 end
             elseif b2.enemy and b.enemy then
                 return "stopped"
-            elseif b2.enemy and b.player then
+            elseif b2.enemy and (b.player or b.shade) then
                 return "pdie", e2
             elseif b2.player and b.enemy and (flags & MOVE_FLAG_IGNORE_PLAYER) == 0 then
                 return "pdie"
@@ -417,6 +460,16 @@ function get_player()
     return get_entity_by_basekey("player")
 end
 
+function entity_count(basekey)
+    local n = 0
+    for key, e in pairs(State.ents) do
+        if e.basekey == basekey then
+            n += 1
+        end
+    end
+    return n
+end
+
 function get_entity_by_basekey(basekey)
     for tidx, e in pairs(State.ents) do
         if e.basekey == basekey then
@@ -430,6 +483,12 @@ end
 function entity_die(e, animation)
     if not e then return end
     State.ents[e.tidx] = nil
+end
+
+function entity_fall(e)
+    if not e then return end
+    -- TODO: fall animation
+    entity_die(e)
 end
 
 function entity_set_position(e, x, y)
@@ -476,9 +535,18 @@ function entity_execute_move(e)
                 entity_die(e)
                 State.explosions[dstidx] = true
             else
-                State.tiles_exited[e.tidx] = e
-                State.tiles_entered[dstidx] = e
-                
+                State.tiles_exited[e.tidx] = {e=e, dx=q.dx, dy=q.dy}
+                State.tiles_entered[dstidx] = {e=e, dx=q.dx, dy=q.dy}
+
+                -- shade trail propagation
+                if e.base.player or e.base.shade then
+                    for _, e2 in pairs(State.ents) do
+                        if e2.base.shade and entity_facing_tidx(e2) == e.tidx then
+                            e2.next_facing = {dx=q.dx, dy=q.dy}
+                        end
+                    end
+                end
+
                 entity_set_position(e, dstx, dsty)
             end
         end
@@ -501,13 +569,13 @@ function execute_moves()
     State.tiles_exited = {}
     
     while true do
-        -- execute move
+        -- execute moves
         for tidx, e in pairs(table.copy(State.ents)) do
             if e.queued_move then
                 entity_execute_move(e)
             end
         end
-        
+
         entity_clear_movephase()
         
         -- check if anything to process
@@ -534,17 +602,19 @@ function execute_moves()
     end
     
     -- tiles entered/exited
-    for tidx, e in pairs(State.tiles_exited) do
+    for tidx, ed in pairs(State.tiles_exited) do
+        local e, dx, dy = ed.e, ed.dx, ed.dy
         local tbase = TILES[State.tiles[tidx]]
         if tbase.entity_exit then
-            tbase.entity_exit(tidx, e)
+            tbase.entity_exit(tidx, e, dx, dy)
         end
     end
     
-    for tidx, e in pairs(State.tiles_entered) do
+    for tidx, ed in pairs(State.tiles_entered) do
+        local e, dx, dy = ed.e, ed.dx, ed.dy
         local tbase = TILES[State.tiles[tidx]]
         if tbase.entity_enter then
-            tbase.entity_enter(tidx, e)
+            tbase.entity_enter(tidx, e, dx, dy)
         end
     end
 end
@@ -558,9 +628,39 @@ function mimics_exist()
     return false
 end
 
-function entities_round(player_dx, player_dy, mimic)
+function shades_exist()
+    for tidx, e in pairs(State.ents) do
+        if e.base.shade then
+            return true
+        end
+    end
+    return false
+end
+
+ROUND_PHASES = {"shade", "mimic", "other"}
+
+function entity_round_phase(e)
+    if e.base.shade then
+        return "shade"
+    elseif e.base.mimic then
+        return "mimic"
+    end
+    return "other"
+end
+
+function phase_has_entities(phase)
+    for tidx, e in pairs(State.ents) do
+        if entity_round_phase(e) == phase then
+            return true
+        end
+    end
+    return false
+end
+
+function entities_round(player_dx, player_dy, phase)
+    State.shades_advanced = false
     for tidx, e in pairs(table.copy(State.ents)) do
-        if e.base.mimic == mimic then
+        if entity_round_phase(e) == phase then
             if e.base.update then
                 e.base.update(e, player_dx, player_dy)
             end

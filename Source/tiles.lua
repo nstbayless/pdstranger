@@ -16,9 +16,36 @@ function TILES.ice.get_animkey(x, y, tstate)
     return "on"
 end
 
+function TILES.shadeglyph.entity_exit(tidx, e, dx, dy)
+    if not ent_at(tidx) then
+        if e.base.spawnshade then
+            add_entity({
+                basekey="shade",
+                state=dir_to_cardinal(dx, dy),
+            }, tidx)
+            
+        end
+    end
+end
+
 function TILES.ice.entity_exit(tidx, e)
     State.tiles[tidx] = "void"
     State.explosions[tidx] = true
+end
+
+function TILES.trap.entity_enter(tidx, e)
+    State.tiles[tidx] = "explo"
+end
+
+function TILES.explo.entity_enter(tidx, e)
+    State.tiles[tidx] = "void"
+    State.explosions[tidx] = true
+    entity_fall(e)
+end
+
+function TILES.death.entity_enter(tidx, e)
+    State.explosions[tidx] = true
+    entity_die(e)
 end
 
 function TILES.stair.rodbox()

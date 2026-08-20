@@ -125,7 +125,7 @@ TILES = {
         anim=9,
     },
     
-    shade = {
+    shadeglyph = {
         shade=true,
         roddable=true,
         cliff=true,
@@ -252,6 +252,7 @@ ENTS = {
     player = {
         sym=":",
         player = true,
+        spawnshade = true,
         anim = {
             e = {3*TSTRIDE + 0, 3*TSTRIDE + 4},
             w = {3*TSTRIDE + 1, 3*TSTRIDE + 5},
@@ -270,6 +271,19 @@ ENTS = {
             pushs = 3*TSTRIDE + 14,
             pushn = 3*TSTRIDE + 15,
             panic = {3*TSTRIDE + 16, 3*TSTRIDE + 17}
+        }
+    },
+    
+    shade = {
+        enemy=true,
+        pushblocker=true,
+        spawnshade=true,
+        shade = true,
+        anim = {
+            s = {6*TSTRIDE + 8, 6*TSTRIDE + 11},
+            n = {6*TSTRIDE + 9, 6*TSTRIDE + 12},
+            e = {6*TSTRIDE + 10, 6*TSTRIDE + 13},
+            w = {-6*TSTRIDE - 10, -6*TSTRIDE - 13},
         }
     },
     
@@ -443,6 +457,8 @@ MAX_INPUT_QUEUE_FRAMES = 3
 MOVE_FLAG_NO_PITS = 1
 MOVE_FLAG_NO_PUSH = 2
 MOVE_FLAG_IGNORE_PLAYER = 4
+MOVE_FLAG_NO_PUSHBLOCKER = 8
+MOVE_FLAG_IGNORE_SHADES = 16
 
 -- in seconds
 SECONDARY_ANIMATIONS_TIME = 0.6

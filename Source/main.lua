@@ -15,7 +15,7 @@ GlobalState = {
 GFX = playdate.graphics.imagetable.new("tiles")
 FONT = playdate.graphics.imagetable.new("font")
 
-load_brane("branes/b005")
+load_brane("branes/b007")
 playdate.display.setRefreshRate(20)
 
 queuedInput = nil
@@ -103,26 +103,51 @@ function player_panic_animation()
 end
 
 function advance_round_phase()
-    if push_secondary_animations() then
-        return
-    end
+    while true do
+        if push_secondary_animations() then
+            return
+        end
 
-    -- 2 phases if mimics present
-    if State.entity_moves_pending == true and mimics_exist() then
-        State.entity_moves_pending = 2
-        entities_round(State.player_dx, State.player_dy, true)
-        push_secondary_animations()
-    elseif State.entity_moves_pending then
-        State.entity_moves_pending = false
-        entities_round(State.player_dx, State.player_dy)
-        push_secondary_animations()
+        if not State.entity_moves_pending then
+            return
+        end
+
+        local i = State.entity_moves_pending
+        if i == true then
+            i = 1
+        end
+
+        -- next phase with anything in it
+        local phase = nil
+        while i <= #ROUND_PHASES do
+            if phase_has_entities(ROUND_PHASES[i]) then
+                phase = ROUND_PHASES[i]
+                break
+            end
+            i += 1
+        end
+
+        if not phase then
+            State.entity_moves_pending = false
+            return
+        end
+
+        entities_round(State.player_dx, State.player_dy, phase)
+
+        -- shade tail propagation
+        if not (phase == "shade" and State.shades_advanced
+                and shades_pending()) then
+            i += 1
+        end
+
+        State.entity_moves_pending = (i <= #ROUND_PHASES) and i or false
     end
 end
 
 function processAction()
     if #actionQueue == 0 then
-        -- no action to advance, but a round phase may still be owed: the
-        -- mimic phase leaves entity_moves_pending set for the nonmimic one
+        -- no action to advance, but a round phase may still be owed: each
+        -- phase leaves entity_moves_pending set for the following
         advance_round_phase()
         return
     end

@@ -100,6 +100,13 @@ function ent_at(x, y)
     return State.ents[tidx]
 end
 
+function add_entity(e, tidx)
+    assert(tidx, "null tidx")
+    e.tidx = tidx
+    entity_init(e)
+    State.ents[tidx] = e
+end
+
 -- loads an object (entity or tile) at the given location,
 -- returns the object type as "entity", "tile", or nil
 -- second return value is object key string
@@ -126,17 +133,14 @@ function load_object(x, y, glyph)
         return "tile", objkey
     elseif obj.entity then
         local e = {
-            base=obj,
             basekey=objkey,
-            tidx=tidx,
             state=state
         }
         
         assert(tidx, "null tidx")
         
-        entity_init(e)
+        add_entity(e, tidx)
         
-        State.ents[tidx] = e
         return "entity", objkey
     else
         assert(false, "unknown object type for '" .. glyph .. "'")
@@ -244,7 +248,6 @@ function find_tile(tstring, state)
 end
 
 function has_line_of_sight(x0, y0, x1, y1)
-    
     -- must be orthogonal
     if x0 ~= x1 and y0 ~= y1 then
         return false
