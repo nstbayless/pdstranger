@@ -1,5 +1,7 @@
 - tile animations (ice, stairs, button, etc.)
 - falling into pit animation
-- item get (show item)
-- dialogue at top of screen
 - if an entity dies while on ice, the ice breaks
+- burdens
+  - memory
+  - sword
+  - wings

@@ -38,6 +38,15 @@ TILE_WALL_W2 = 2*TSTRIDE + 9
 TILE_WALL_S2 = 2*TSTRIDE + 10
 TILE_WALL_E2 = 2*TSTRIDE + 11
 
+FALLING_OBJECT_ANIM = {
+    TSTRIDE*11 + 0,
+    TSTRIDE*11 + 1,
+    TSTRIDE*11 + 2,
+    TSTRIDE*11 + 3,
+}
+
+local unpack=table.unpack
+
 TILE_DIALOGUE = {
     [-1] = {
         [-1] = TSTRIDE*5 + 16,
@@ -293,6 +302,7 @@ ENTS = {
             pushn = 3*TSTRIDE + 15,
             panic = {3*TSTRIDE + 16, 3*TSTRIDE + 17},
             item = 3*TSTRIDE + 18,
+            fall = {11*TSTRIDE + 6, 11*TSTRIDE + 7, unpack(FALLING_OBJECT_ANIM)},
         }
     },
     
@@ -508,3 +518,5 @@ IDOL_TIME = 1.5
 COLOR_CHECKERBOARD = { 0xaa, 0x55, 0xaa, 0x55, 0xaa, 0x55, 0xaa, 0x55 }
 
 ADJACENT_DIRS = {{dx=-1, dy=0}, {dx=1, dy=0}, {dy=-1, dx=0}, {dy=1, dx=0}}
+
+FALL_ANIM_RATE = 10

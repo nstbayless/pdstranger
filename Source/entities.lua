@@ -320,6 +320,14 @@ function ENTS.beaver.update(e)
     end
 end
 
+function ENTS.mim.interact(e)
+    push_dialogue("Can I help you?", entity_dialogue_side(e), "mimic")
+    return 1
+end
+ENTS.mimx.interact = ENTS.mim.interact
+ENTS.mimy.interact = ENTS.mim.interact
+ENTS.mimxy.interact = ENTS.mim.interact
+
 function ENTS.chest.interact(e, ei, dx, dy)
     if dy == -1 then
         if e.state == "on" then
@@ -595,10 +603,21 @@ function entity_die(e, cause)
     
     if e.base.player then
         player_death(e, cause)
+    elseif e.base.shade then
+        entity_die(get_player())
     end
     if cause == "explode" then
         State.explosions[e.tidx] = true
     end
+    
+    if cause == "fall" then
+        local anim = FALLING_OBJECT_ANIM
+        if type(e.base.anim) == "table" and e.base.anim.fall then
+            anim = e.base.anim.fall
+        end
+        table.insert(State.fallers, {anim=anim, tidx=e.tidx, frame=0})
+    end
+    
     State.ents[e.tidx] = nil
 end
 
@@ -611,8 +630,6 @@ function entity_fall(e)
     end
     
     -- standard fall & die
-    -- TODO: fall animation
-    State.explosions[e.tidx] = true
     entity_die(e, "fall")
 end
 

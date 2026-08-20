@@ -88,10 +88,13 @@ function player_death(e, cause)
         return
     end
     
-    if not GlobalState.void and GlobalState.lives >= 1 then
-        pushAction({type="lifeloss", speed=1.0/0.6, t=0})
+    if not GlobalState.void and nloc >= 1 then
+        GlobalState.lives = nloc
+        table.insert(State.icons, {tile=TILE_HUD_LOCUST, x=x, y=y})
+        pushAction({type="lifeloss", speed=1.0/1.5, t=0})
         deathFade.lifeloss = true
     end
+    
     deathFade.voidfade = GlobalState.void
 end
 
@@ -190,6 +193,13 @@ function advance_round_phase()
     end
 end
 
+function applyHUDChanges()
+    local nloc = getLivesFromHUD()
+    if nloc ~= nil then
+        GlobalState.lives = nloc
+    end
+end
+
 function processAction()
     if #actionQueue == 0 then
         -- no action to advance, but a round phase may still be owed: each
@@ -202,7 +212,7 @@ function processAction()
     
     if not action.logged then
         action.logged = true
-        print("action: ", action.type)
+        --print("action: ", action.type)
     end
     
     if action.t and action.t < 1 then
@@ -327,6 +337,9 @@ function processAction()
     elseif action.type == "fadeout" then
         -- completed fade out
         local brane_path = action.nextbrane or State.path
+
+        applyHUDChanges()
+        
         reset_state()
         if GlobalState.lives == 0 and not action.nextbrane then
             GlobalState.void = true
@@ -605,6 +618,21 @@ function draw_icons()
     playdate.graphics.setImageDrawMode(playdate.graphics.kDrawModeCopy)
 end
 
+function draw_fallers()
+    if table.empty(State.fallers) then return end
+    for i, faller in pairs(table.copy(State.fallers)) do
+        local frame = math.floor(faller.frame)
+        local px, py = pcoord_of(faller.tidx)
+        draw_anim(px, py, faller.anim, frame)
+        
+        faller.frame += 1.0/FPS*FALL_ANIM_RATE
+        
+        if faller.frame >= #faller.anim then
+            State.fallers[i] = nil
+        end
+    end
+end
+
 function playdate.update()
     -- update
     if in_dialogue() then
@@ -631,6 +659,7 @@ function playdate.update()
         draw_explosions()
     end
     draw_entities()
+    draw_fallers()
     draw_icons()
     draw_special_animations()
     draw_dialogue()

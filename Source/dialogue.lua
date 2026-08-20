@@ -157,7 +157,7 @@ function draw_dialogue()
     
     if d.wait then
         local prompt = TILE_DIALOGUE.prompt[1 + (math.floor(State.frame / 6) % 2)]
-        local px,py = pcoord_of(W-1, H-1)
+        local px,py = pcoord_of(W-1, htop+2)
         draw_gfx(px, py, prompt)
     end
 end

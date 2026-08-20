@@ -19,6 +19,9 @@ State = {
     -- list of {tile=, x=, y=, t=}
     icons = {},
     
+    -- list of falling objects {anim=, tidx=, frame=}
+    fallers = {},
+    
     -- map tidx -> list of entities intending to move there
     entity_moving_to={},
     
@@ -322,6 +325,7 @@ function getLivesFromHUD()
             local nt, ntstate = tile_at(ntidx)
             if nt == "hud" then
                 local nloc = string_to_number(ntstate)
+                print(ntstate, nloc)
                 if nloc then
                     return nloc
                 end
