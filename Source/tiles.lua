@@ -51,6 +51,7 @@ end
 
 function TILES.explo.entity_enter(tidx, e)
     State.tiles[tidx] = "void"
+    -- TODO: propagate
     State.explosions[tidx] = true
     entity_fall(e)
 end

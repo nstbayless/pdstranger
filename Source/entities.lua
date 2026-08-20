@@ -14,6 +14,13 @@ function ENTS.player.init(e)
     e.state = e.state or "s"
 end
 
+function ENTS.steus.onpit(e)
+    State.explosions[e.tidx] = true
+    State.tiles[e.tidx] = "floor"
+    entity_die(e)
+    return true
+end
+
 function ENTS.stgor.init(e)
     e.state = e.state or "off"
 end
@@ -24,12 +31,36 @@ function ENTS.stgor.onpush(e)
     e.visible_state_t = SECONDARY_ANIMATIONS_TIME
 end
 
+function ENTS.stmon.update(e)
+    local player = get_player()
+    if not player then return end
+    local player_x, player_y = tcoord_of(player.tidx)
+    local x, y = tcoord_of(e.tidx)
+    local los, dx, dy = has_line_of_sight(x, y, player_x, player_y)
+    if los then
+        e.flashing = true
+        e.visible_state_t = 1
+        player.flashing = true
+        
+        while los > 1 do
+            x += dx
+            y += dy
+            local eidx = tidx_of(x, y)
+            if eidx then
+                State.explosions[eidx] = ANIM_ZAP[dir_to_cardinal(dx, dy)]
+            end
+            los -= 1
+        end
+        
+        table.insert(State.entity_killing_player, e)
+    end
+end
+
 function ENTS.stgor.solid(e)
     return e.state == "on"
 end
 
 function ENTS.sttan.update(e)
-    
     -- check if any enemies (or NPCs) alive
     for tidx,e in pairs(State.ents) do
         if e.base.enemy then
@@ -261,7 +292,7 @@ function ENTS.beaver.update(e)
         end
         
         if dx ~= 0 or dy ~= 0 then
-            if has_line_of_sight(x + dx, y + dy, player_x, player_y) then
+            if has_line_of_sight(x, y, player_x, player_y) then
                 local blocker = get_entity_move_blocker(
                     e, dx, dy,
                     MOVE_FLAG_NO_PUSH | MOVE_FLAG_NO_PITS | MOVE_FLAG_IGNORE_PLAYER
@@ -553,7 +584,15 @@ end
 
 function entity_fall(e)
     if not e then return end
+    if e.base.onpit then
+        if e.base.onpit(e) then
+            return
+        end
+    end
+    
+    -- standard fall & die
     -- TODO: fall animation
+    State.explosions[e.tidx] = true
     entity_die(e)
 end
 
@@ -597,9 +636,8 @@ function entity_execute_move(e)
             local srctile = TILES[tile_at(e.tidx) or "void"]
             local dsttile = TILES[tile_at(dstidx) or "wall"]
             if dsttile.pit then
-                -- entities over pit -- explode (for now)
-                entity_die(e)
-                State.explosions[dstidx] = true
+                entity_set_position(e, dstidx)
+                entity_fall(e)
             else
                 State.tiles_exited[e.tidx] = {e=e, dx=q.dx, dy=q.dy}
                 State.tiles_entered[dstidx] = {e=e, dx=q.dx, dy=q.dy}
@@ -712,14 +750,14 @@ function shades_exist()
     return false
 end
 
-ROUND_PHASES = {"shade", "stairs", "mimic", "other", "statue"}
+ROUND_PHASES = {"shade", "stairs", "mimic", "other", "stairs", "statue"}
 
 function entity_round_phase(e)
     if e.base.shade then
         return "shade"
     elseif e.base.mimic then
         return "mimic"
-    elseif e.basekey.statue then
+    elseif e.base.statue then
         return "statue"
     end
     return "other"

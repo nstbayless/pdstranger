@@ -15,7 +15,7 @@ GlobalState = {
 GFX = playdate.graphics.imagetable.new("tiles")
 FONT = playdate.graphics.imagetable.new("font")
 
-load_brane("branes/b006")
+load_brane("branes/b008")
 playdate.display.setRefreshRate(FPS)
 
 queuedInput = nil
@@ -432,27 +432,33 @@ function draw_special_animations()
 end
 
 function draw_explosions()
-    for tidx, _ in pairs(State.explosions) do
+    for tidx, anim in pairs(State.explosions) do
         px, py = pcoord_of(tidx)
-        px += 0.5 * GW
-        py += 0.5 * GH
         
-        for i=1,8 + math.random(4) do
-            local w = 3 + math.random()*14
-            local h = 3 + math.random()*12
+        if type(anim) == "table" then
+            draw_anim(px, py, anim)
+        else
+            -- standard explosion
+            px += 0.5 * GW
+            py += 0.5 * GH
             
-            local xoff = (math.random() - math.random())*GW
-            local yoff = (math.random() - math.random())*GH
-            
-            playdate.graphics.setColor(
-                (math.random(2) == 1)
-                    and playdate.graphics.kColorBlack
-                    or playdate.graphics.kColorWhite
-            )
-            if math.random() > 0.4 then
-                playdate.graphics.setColor(playdate.graphics.kColorXOR)
+            for i=1,8 + math.random(4) do
+                local w = 3 + math.random()*14
+                local h = 3 + math.random()*12
+                
+                local xoff = (math.random() - math.random())*GW
+                local yoff = (math.random() - math.random())*GH
+                
+                playdate.graphics.setColor(
+                    (math.random(2) == 1)
+                        and playdate.graphics.kColorBlack
+                        or playdate.graphics.kColorWhite
+                )
+                if math.random() > 0.4 then
+                    playdate.graphics.setColor(playdate.graphics.kColorXOR)
+                end
+                playdate.graphics.fillRect(px - w/2 + xoff, py - h/2 + yoff, w, h)
             end
-            playdate.graphics.fillRect(px - w/2 + xoff, py - h/2 + yoff, w, h)
         end
     end
 end

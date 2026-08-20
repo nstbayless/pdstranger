@@ -419,6 +419,13 @@ ENTS = {
     },
 }
 
+ANIM_ZAP = {
+    n={TSTRIDE*7 + 12, TSTRIDE*7 + 13, superfast=true},
+    e={TSTRIDE*7 + 13, TSTRIDE*7 + 14, superfast=true},
+    s={-TSTRIDE*7 - 12, -TSTRIDE*7 - 13, superfast=true},
+    w={-TSTRIDE*7 - 13, -TSTRIDE*7 - 14, superfast=true},
+}
+
 OBJLOOKUP = {
 }
 

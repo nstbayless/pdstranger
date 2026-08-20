@@ -13,7 +13,7 @@ State = {
     
     rod_storage = nil,
     
-    -- set tidx
+    -- map tidx -> true or anim
     explosions = {},
     
     -- map tidx -> list of entities intending to move there
@@ -251,6 +251,8 @@ function find_tile(tstring, state)
     return nil
 end
 
+-- returns false, or distance
+-- second/third RA are dx, dy (unless return false)
 function has_line_of_sight(x0, y0, x1, y1)
     -- must be orthogonal
     if x0 ~= x1 and y0 ~= y1 then
@@ -262,6 +264,7 @@ function has_line_of_sight(x0, y0, x1, y1)
     local cx = x0 + dx
     local cy = y0 + dy
     local obstacle = false
+    local i = 1
     while (cx ~= x1 or cy ~= y1) do
         local tile = tile_at(cx, cy)
         local e = ent_at(cx, cy)
@@ -273,9 +276,10 @@ function has_line_of_sight(x0, y0, x1, y1)
         end
         cx += dx
         cy += dy
+        i += 1
     end
     
-    return true
+    return i, dx, dy
 end
 
 -- returns true if successful

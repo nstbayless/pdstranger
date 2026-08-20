@@ -69,6 +69,9 @@ function draw_anim(px, py, anim, f)
     if anim.fast then
         f *= 1.5
     end
+    if anim.superfast then
+        f = State.frame
+    end
     f = math.floor(f)
     f %= #anim
     draw_gfx(px, py, anim[f + 1])
