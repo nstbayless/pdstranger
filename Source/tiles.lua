@@ -1,11 +1,5 @@
 function TILES.stair.get_animkey()
-    for i=1,TIDX_MAX do
-        if tile_at(i) == "button" then
-            return "off"
-        end
-    end
-    
-    return "on"
+    return get_stairs_locked() and "off" or "on"
 end
 
 function TILES.ice.get_animkey(x, y, tstate)
@@ -17,15 +11,33 @@ function TILES.ice.get_animkey(x, y, tstate)
 end
 
 function TILES.shadeglyph.entity_exit(tidx, e, dx, dy)
-    if not ent_at(tidx) then
-        if e.base.spawnshade then
-            add_entity({
-                basekey="shade",
-                state=dir_to_cardinal(dx, dy),
-            }, tidx)
-            
-        end
+    if not e.base.spawnshade then
+        return
     end
+
+    if e.base.player then
+        -- prime
+        State.tiles_state[tidx] = "on"
+    end
+
+    if State.tiles_state[tidx] ~= "on" then
+        return
+    end
+
+    -- wait until last shade
+    if shade_faces_tidx(tidx) then
+        return
+    end
+
+    if ent_at(tidx) then
+        return
+    end
+
+    State.tiles_state[tidx] = "off"
+    add_entity({
+        basekey="shade",
+        state=dir_to_cardinal(dx, dy),
+    }, tidx)
 end
 
 function TILES.ice.entity_exit(tidx, e)
@@ -49,7 +61,7 @@ function TILES.death.entity_enter(tidx, e)
 end
 
 function TILES.stair.rodbox()
-    if TILES.stair.get_animkey() == "off" then
+    if get_stairs_locked() then
         return TILE_ROD_BOX + TILE_B_STAIRS_LOCKED
     else
         return TILE_ROD_BOX + TILE_B_STAIRS

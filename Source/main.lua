@@ -15,7 +15,7 @@ GlobalState = {
 GFX = playdate.graphics.imagetable.new("tiles")
 FONT = playdate.graphics.imagetable.new("font")
 
-load_brane("branes/b007")
+load_brane("branes/b004")
 playdate.display.setRefreshRate(20)
 
 queuedInput = nil
@@ -120,7 +120,7 @@ function advance_round_phase()
         -- next phase with anything in it
         local phase = nil
         while i <= #ROUND_PHASES do
-            if phase_has_entities(ROUND_PHASES[i]) then
+            if phase_has_entities(ROUND_PHASES[i]) or ROUND_PHASES[i] == "stairs" then
                 phase = ROUND_PHASES[i]
                 break
             end
@@ -132,7 +132,18 @@ function advance_round_phase()
             return
         end
 
-        entities_round(State.player_dx, State.player_dy, phase)
+        if phase == "stairs" then
+            -- check if player has reached stairs
+            if check_player_reached_stairs() then
+                State.entity_moves_pending = false
+                local player = get_player()
+                local player_x, player_y = tcoord_of(player.tidx)
+                pushAction({type="fadeout", speed=1.0/1.2, t=0, iris={x=player_x, y=player_y}, nextbrane=get_stairs_brane()})
+                return
+            end
+        else
+            entities_round(State.player_dx, State.player_dy, phase)
+        end
 
         -- shade tail propagation
         if not (phase == "shade" and State.shades_advanced
@@ -264,7 +275,7 @@ function processAction()
         end
     elseif action.type == "fadeout" then
         -- completed fade out
-        local brane_path = State.path
+        local brane_path = action.nextbrane or State.path
         reset_state()
         if GlobalState.lives == 0 then
             GlobalState.void = true
@@ -273,8 +284,15 @@ function processAction()
             GlobalState.lives -= 1
         end
         load_brane(brane_path)
-        local t = action.voidfade and VOIDFADE_TIME or LIVEFADE_TIME
-        pushAction({type="fadein", t=0, speed=1.0/t, lifeloss=action.lifeloss, voidfade=action.voidfade})
+        local iris=nil
+        if action.nextbrane then
+            local player = get_player()
+            if player then
+                local player_x, player_y = tcoord_of(player.tidx)
+                iris = {x=player_x, y=player_y}
+            end
+        end
+        pushAction({type="fadein", t=0, speed=action.speed, lifeloss=action.lifeloss, voidfade=action.voidfade, iris=iris})
         fade_pattern = randlist(32*32)
     elseif action.type == "move" then
         State.round += 1
@@ -359,27 +377,37 @@ function draw_special_animations()
         end
         local t = action.t
         
-        local srf = get_rand32_srf(fade_pattern, fadein and (1-t) or t, action.lifeloss and playdate.graphics.kColorWhite or playdate.graphics.kColorBlack)
-        
-        for x=-1,W do
-            for y=-1,H do
-                local px, py = pcoord_of(x, y)
-                
-                if not action.voidfade then
-                    -- lifeloss fade
-                    srf:draw(x*32, y*32)
-                else
-                    -- void fade
-                    if (x + y) % 2 == 0 then
-                        local p = math.max(t*2 - y/H, 0)
-                        px += 0.5 * GW
-                        py += 0.5 * GH
-                        playdate.graphics.fillPolygon(
-                            px + p * GW, py,
-                            px, py + p * GH,
-                            px - p * GW, py,
-                            px, py - p * GH
-                        )
+        if action.iris then
+            local radius = math.floor((fadein and t or (1-t)) * math.max(W-1, H-1)) - 0.5
+            local px, py = pcoord_of(action.iris.x, action.iris.y)
+            px += 0.5*GW
+            py += 0.5*GH
+            playdate.graphics.fillRect(0, py + GH*radius, 400, 240)
+            playdate.graphics.fillRect(px + GW*radius, 0, 400, 240)
+            playdate.graphics.fillRect(0, 0, 400, py - GH*radius)
+            playdate.graphics.fillRect(0, 0, px - GW*radius, 240)
+        else
+            local srf = get_rand32_srf(fade_pattern, fadein and (1-t) or t, action.lifeloss and playdate.graphics.kColorWhite or playdate.graphics.kColorBlack)
+            for x=-1,W do
+                for y=-1,H do
+                    local px, py = pcoord_of(x, y)
+                    
+                    if not action.voidfade then
+                        -- lifeloss fade
+                        srf:draw(x*32, y*32)
+                    else
+                        -- void fade
+                        if (x + y) % 2 == 0 then
+                            local p = math.max(t*2 - y/H, 0)
+                            px += 0.5 * GW
+                            py += 0.5 * GH
+                            playdate.graphics.fillPolygon(
+                                px + p * GW, py,
+                                px, py + p * GH,
+                                px - p * GW, py,
+                                px, py - p * GH
+                            )
+                        end
                     end
                 end
             end

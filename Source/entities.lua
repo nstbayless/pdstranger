@@ -58,6 +58,15 @@ function shades_pending()
     return false
 end
 
+function shade_faces_tidx(tidx)
+    for _, e in pairs(State.ents) do
+        if e.base.shade and entity_facing_tidx(e) == tidx then
+            return true
+        end
+    end
+    return false
+end
+
 function ENTS.shade.update(e)
     local facing = e.next_facing
     if not facing then
@@ -66,7 +75,7 @@ function ENTS.shade.update(e)
     
     -- shade in front (blocking)
     local tidx = entity_facing_tidx(e)
-    it tidx then
+    if tidx then
         local e2 = State.ents[tidx]
         if e2 ~= nil and e2.base.shade == true then
             return
@@ -637,7 +646,7 @@ function shades_exist()
     return false
 end
 
-ROUND_PHASES = {"shade", "mimic", "other"}
+ROUND_PHASES = {"shade", "stairs", "mimic", "other"}
 
 function entity_round_phase(e)
     if e.base.shade then

@@ -152,6 +152,10 @@ function reset_state()
     State = table.deepcopy(CLEAN_STATE)
 end
 
+function get_stairs_brane()
+    return string.format("branes/b%03d", State.brane_number + 1)
+end
+
 local INTERFACE_TILES = {
     "memento",
     "HP0",
@@ -301,4 +305,32 @@ function gainLife(n)
             end
         end
     end
+end
+
+function get_stairs_locked()
+    for i=1,TIDX_MAX do
+        if tile_at(i) == "button" then
+            if not ent_at(i) then
+                return true
+            end
+        end
+    end
+    
+    return false
+end
+
+function check_player_reached_stairs()
+    local player = get_player()
+    if not player then return false end
+    
+    local tstring = tile_at(player.tidx)
+    if not tstring then return false end
+    
+    if TILES[tstring].stair then
+        if not get_stairs_locked() then
+            return true
+        end
+    end
+    
+    return false
 end
