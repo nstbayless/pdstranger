@@ -366,7 +366,7 @@ ENTS = {
         sym = "b",
         enemy=true,
         anim={
-            idle={TSTRIDE*5 + 8, idle=TSTRIDE*5 + 9},
+            idle={TSTRIDE*5 + 8, TSTRIDE*5 + 9},
             s={TSTRIDE*5 + 10, TSTRIDE*5 + 11},
             e={TSTRIDE*5 + 12, TSTRIDE*5 + 13},
             w={-TSTRIDE*5 - 12, -TSTRIDE*5 - 13},

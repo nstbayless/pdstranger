@@ -204,12 +204,13 @@ function ENTS.leech.update(e)
     local x, y = tcoord_of(e.tidx)
     dstidx = tidx_of(x + dx, y + dy)
     
-    local blocker = get_entity_move_blocker(
+    local blocker, e2 = get_entity_move_blocker(
         e, dx, dy,
-        MOVE_FLAG_NO_PITS | MOVE_FLAG_NO_PUSH
+        MOVE_FLAG_NO_PITS | MOVE_FLAG_NO_PUSH | MOVE_FLAG_IGNORE_SHADES
     )
     if blocker == "pdie" then
         add_entity_killing_player(e)
+        add_entity_killing_player(e2)
     elseif blocker ~= nil then
         -- turn around
         e.state = dir_to_cardinal(-dx, -dy)
@@ -294,7 +295,8 @@ function ENTS.beaver.update(e)
             if has_line_of_sight(x, y, player_x, player_y) then
                 local blocker = get_entity_move_blocker(
                     e, dx, dy,
-                    MOVE_FLAG_NO_PUSH | MOVE_FLAG_NO_PITS | MOVE_FLAG_IGNORE_PLAYER
+                    MOVE_FLAG_NO_PUSH | MOVE_FLAG_NO_PITS
+                    | MOVE_FLAG_IGNORE_PLAYER | MOVE_FLAG_IGNORE_SHADES
                 )
                 if blocker == nil then
                     e.state = dir_to_cardinal(dx, dy)
@@ -306,12 +308,13 @@ function ENTS.beaver.update(e)
     if e.state ~= "idle" then
         local dx, dy = cardinal_to_dir(e.state)
         
-        local blocker = get_entity_move_blocker(
+        local blocker, e2 = get_entity_move_blocker(
             e, dx, dy,
             MOVE_FLAG_NO_PUSH | MOVE_FLAG_NO_PITS
         )
         if blocker == "pdie" then
             add_entity_killing_player(e)
+            add_entity_killing_player(e2)
         elseif blocker then
             e.state = "idle"
         else
@@ -377,6 +380,8 @@ function ENTS.chest.interact(e, ei, dx, dy)
 end
 
 function add_entity_killing_player(e)
+    if not e then return end
+    if e.base.player then return end
     if not table.ihas(State.entity_killing_player, e) then
         table.insert(State.entity_killing_player, e)
     end
@@ -516,9 +521,11 @@ function get_entity_move_blocker(e, dx, dy, flags)
                 else
                     return "stopped"
                 end
+            elseif b2.shade and b.enemy then
+                return "pdie", e2
             elseif b2.enemy and b.enemy then
                 return "stopped"
-            elseif b2.enemy and (b.player or b.shade) then
+            elseif b2.enemy and b.player then
                 return "pdie", e2
             elseif b2.player and b.enemy and (flags & MOVE_FLAG_IGNORE_PLAYER) == 0 then
                 return "pdie"
@@ -698,7 +705,8 @@ function entity_execute_move(e)
             end
         end
     elseif q.blocked == "pdie" then
-        add_entity_killing_player(q.e or e)
+        add_entity_killing_player(e)
+        add_entity_killing_player(q.e)
     elseif q.blocked == "push" then
         -- perform push
         table.insert(State.entity_animating, e)

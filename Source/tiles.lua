@@ -77,6 +77,8 @@ function TILES.death.trigger(tidx)
     if e then
         entity_die(e, "explode")
     end
+    
+    State.tiles_state[tidx] = nil
 end
 
 function TILES.explo.entity_enter(tidx, e)
