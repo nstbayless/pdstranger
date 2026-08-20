@@ -15,12 +15,21 @@ GlobalState = {
 GFX = playdate.graphics.imagetable.new("tiles")
 FONT = playdate.graphics.imagetable.new("font")
 
+function get_starting_brane()
+    for i, arg in ipairs(playdate.argv) do
+        if string.startswith(arg, "brane=") then
+            return string.sub(arg, #"brane="+1)
+        end
+    end
+    return "branes/b004"
+end
+
 function reset_game()
     GlobalState.lives = 0
     GlobalState.hp = 7
     GlobalState.void = false
     reset_state()
-    load_brane("branes/b004")
+    load_brane(get_starting_brane())
 end
 
 playdate.display.setRefreshRate(FPS)

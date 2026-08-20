@@ -218,3 +218,12 @@ function get_rand32_srf(randlist32, p, color)
     
     return rand32_srf
 end
+
+function string.startswith(s, prefix)
+    if #s >= #prefix then
+        if string.sub(s, 1, #prefix) == prefix then
+            return true
+        end
+    end
+    return false
+end
