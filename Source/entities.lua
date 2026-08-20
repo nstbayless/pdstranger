@@ -596,6 +596,9 @@ function entity_die(e, cause)
     if e.base.player then
         player_death(e, cause)
     end
+    if cause == "explode" then
+        State.explosions[e.tidx] = true
+    end
     State.ents[e.tidx] = nil
 end
 
@@ -767,7 +770,7 @@ function shades_exist()
     return false
 end
 
-ROUND_PHASES = {"shade", "stairs", "mimic", "other", "stairs", "statue"}
+ROUND_PHASES = {"shade", "_stairs", "mimic", "other", "_stairs", "_tiles", "statue"}
 
 function entity_round_phase(e)
     if e.base.shade then

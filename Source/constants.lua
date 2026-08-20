@@ -122,7 +122,10 @@ TILES = {
         roddable=true,
         rodbox = TILE_ROD_BOX + TILE_B_EXPLO,
         sym="*",
-        anim=9,
+        anim={
+            default=9,
+            trigger={false, 9, superfast=true}
+        },
     },
     
     shadeglyph = {
@@ -137,8 +140,12 @@ TILES = {
     death = {
         death=true,
         roddable=true,
+        cliff=true,
         sym="!",
-        anim=11,
+        anim={
+            default=11,
+            trigger={11, 2, superfast=true}
+        },
         rodbox = TILE_ROD_BOX + TILE_B_DEATH,
     },
     
@@ -349,11 +356,11 @@ ENTS = {
         sym = "b",
         enemy=true,
         anim={
-            idle=TSTRIDE*5 + 8,
-            s={TSTRIDE*5 + 9, TSTRIDE*5 + 10},
-            e={TSTRIDE*5 + 11, TSTRIDE*5 + 12},
-            w={-TSTRIDE*5 - 11, -TSTRIDE*5 - 12},
-            n={TSTRIDE*5 + 13, TSTRIDE*5 + 14},
+            idle={TSTRIDE*5 + 8, idle=TSTRIDE*5 + 9},
+            s={TSTRIDE*5 + 10, TSTRIDE*5 + 11},
+            e={TSTRIDE*5 + 12, TSTRIDE*5 + 13},
+            w={-TSTRIDE*5 - 12, -TSTRIDE*5 - 13},
+            n={TSTRIDE*5 + 14, TSTRIDE*5 + 15},
         },
     },
     
@@ -404,10 +411,10 @@ ENTS = {
         mimic=true,
         axis={x=true, y=true},
         anim={
-            s={TSTRIDE*7 + 6, TSTRIDE*7 + 7},
-            n={TSTRIDE*7 + 8, TSTRIDE*7 + 9},
-            e={TSTRIDE*7 + 10, TSTRIDE*7 + 11},
-            w={-TSTRIDE*7 - 10, -TSTRIDE*7 - 11},
+            s={TSTRIDE*9 + 0, TSTRIDE*9 + 1},
+            n={TSTRIDE*9 + 2, TSTRIDE*9 + 3},
+            e={TSTRIDE*9 + 4, TSTRIDE*9 + 5},
+            w={-TSTRIDE*9 - 4, -TSTRIDE*9 - 5},
         }
     },
     
@@ -417,10 +424,10 @@ ENTS = {
         mimic=true,
         axis={},
         anim={
-            s={TSTRIDE*8 + 6, TSTRIDE*8 + 7},
-            n={TSTRIDE*8 + 8, TSTRIDE*8 + 9},
-            e={TSTRIDE*8 + 10, TSTRIDE*8 + 11},
-            w={-TSTRIDE*8 - 10, -TSTRIDE*8 - 11},
+            s={TSTRIDE*10 + 6, TSTRIDE*10 + 7},
+            n={TSTRIDE*10 + 8, TSTRIDE*10 + 9},
+            e={TSTRIDE*10 + 10, TSTRIDE*10 + 11},
+            w={-TSTRIDE*10 - 10, -TSTRIDE*10 - 11},
         }
     },
 }
@@ -499,3 +506,5 @@ LEVZAP_BOLT_TIME = 0.6
 IDOL_TIME = 1.5
 
 COLOR_CHECKERBOARD = { 0xaa, 0x55, 0xaa, 0x55, 0xaa, 0x55, 0xaa, 0x55 }
+
+ADJACENT_DIRS = {{dx=-1, dy=0}, {dx=1, dy=0}, {dy=-1, dx=0}, {dy=1, dx=0}}

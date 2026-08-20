@@ -53,6 +53,7 @@ function draw_string(px, py, s, flags)
 end
 
 function draw_gfx(px, py, gfxidx)
+    if not gfxidx then return end
     local flip = (gfxidx < 0) and playdate.graphics.kImageFlippedX or nil
     if flip then
         gfxidx *= -1

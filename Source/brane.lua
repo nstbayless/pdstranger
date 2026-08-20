@@ -29,6 +29,9 @@ State = {
     -- or are in some other animation
     entity_animating={},
     
+    -- set of tidx->true e.g. explo
+    tiles_triggered={},
+    
     frames_per_anim_tick = 13,
     
     -- ticks at FPS

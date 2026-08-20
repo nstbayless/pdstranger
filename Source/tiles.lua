@@ -49,16 +49,42 @@ function TILES.trap.entity_enter(tidx, e)
     State.tiles[tidx] = "explo"
 end
 
-function TILES.explo.entity_enter(tidx, e)
+function TILES.explo.pretrigger(tidx)
+    -- propagate
+    State.tiles_triggered[tidx] = true
+    local x,y = tcoord_of(tidx)
+    for i, dir in ipairs(ADJACENT_DIRS) do
+        local dx, dy = dir.dx, dir.dy
+        local tidx2 = tidx_of(x + dx, y + dy)
+        if tidx2 and State.tiles[tidx2] == State.tiles[tidx] and not State.tiles_triggered[tidx2] then
+            TILES[State.tiles[tidx2]].pretrigger(tidx2)
+        end
+    end
+end
+
+function TILES.explo.trigger(tidx)
     State.tiles[tidx] = "void"
-    -- TODO: propagate
-    State.explosions[tidx] = true
-    entity_fall(e)
+    State.tiles_state[tidx] = nil
+    
+    local e = ent_at(tidx)
+    if e then
+        entity_fall(e)
+    end
+end
+
+function TILES.death.trigger(tidx)
+    local e = ent_at(tidx)
+    if e then
+        entity_die(e, "explode")
+    end
+end
+
+function TILES.explo.entity_enter(tidx, e)
+    State.tiles_triggered[tidx] = true
 end
 
 function TILES.death.entity_enter(tidx, e)
-    State.explosions[tidx] = true
-    entity_die(e)
+    State.tiles_triggered[tidx] = true
 end
 
 function TILES.stair.rodbox()
@@ -140,6 +166,8 @@ function draw_tile(x, y, tstring, tstate)
         return
     end
     
+    local tstatedefault = tstate or "default"
+    
     -- draw tile
     local anim = base.anim
     if type(anim) == "number" then
@@ -147,9 +175,9 @@ function draw_tile(x, y, tstring, tstate)
     elseif type(anim) == "table" then
         if base.get_animkey then
             local key = base.get_animkey(x, y, tstate)
-            draw_gfx(px, py, anim[key])
-        elseif anim[tstate] then
-            draw_gfx(px, py, anim[tstate])
+            draw_anim(px, py, anim[key])
+        elseif anim[tstatedefault] then
+            draw_anim(px, py, anim[tstatedefault])
         end
     end
 end

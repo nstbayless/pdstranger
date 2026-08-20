@@ -145,7 +145,7 @@ function advance_round_phase()
         -- next phase with anything in it
         local phase = nil
         while i <= #ROUND_PHASES do
-            if phase_has_entities(ROUND_PHASES[i]) or ROUND_PHASES[i] == "stairs" then
+            if phase_has_entities(ROUND_PHASES[i]) or string.sub(ROUND_PHASES[i], 1, 1) == "_" then
                 phase = ROUND_PHASES[i]
                 break
             end
@@ -157,12 +157,24 @@ function advance_round_phase()
             return
         end
 
-        if phase == "stairs" then
+        if phase == "_stairs" then
             -- check if player has reached stairs
             if check_player_reached_stairs() then
                 State.entity_moves_pending = false
                 exit_by_stairs()
                 return
+            end
+        elseif phase == "_tiles" then
+            -- activate triggered tiles
+            if not table.empty(State.tiles_triggered) then
+                pushAction({type="tiles-trigger", t=0, speed=1.0/SECONDARY_ANIMATIONS_TIME})
+                -- propagate 
+                for tidx, _ in pairs(table.copy(State.tiles_triggered)) do
+                    local tbase = TILES[State.tiles[tidx]]
+                    if tbase.pretrigger then
+                        tbase.pretrigger(tidx)
+                    end
+                end
             end
         else
             entities_round(State.player_dx, State.player_dy, phase)
@@ -219,10 +231,10 @@ function processAction()
             player_panic_animation()
         elseif action.type == "levzap-pre" then
             State.levzap = true
-        elseif action.type == "levzap-bolt" then
-            --[[ for tidx, e in pairs(State.entity_killing_player) do
-                e.flashing = true
-            end ]]
+        elseif action.type == "tiles-trigger" then
+            for tidx, _ in pairs(State.tiles_triggered) do
+                State.tiles_state[tidx] = "trigger"
+            end
         elseif action.type == "secondary" then
             -- entities killing player
             -- TODO: make it face player if possible
@@ -355,6 +367,14 @@ function processAction()
         
         -- update entities
         State.entity_moves_pending = true
+    elseif action.type == "tiles-trigger" then
+        for tidx, _ in pairs(table.copy(State.tiles_triggered)) do
+            State.tiles_triggered[tidx] = nil
+            local tbase = TILES[State.tiles[tidx]]
+            if tbase.trigger then
+                tbase.trigger(tidx)
+            end
+        end
     elseif action.type == "levzap-bolt" then
         for i, e in ipairs(State.entity_killing_player) do
             e.visible_state = nil
@@ -497,6 +517,9 @@ function draw_special_animations()
                     local px, py = pcoord_of(x, y)
                     
                     if not action.voidfade then
+                        if not fade_pattern then
+                            fade_pattern = randlist(32*32)
+                        end
                         if not srf then
                             srf = get_rand32_srf(fade_pattern, fadein and (1-t) or t, (action.lifeloss or action.white) and playdate.graphics.kColorWhite or playdate.graphics.kColorBlack)
                         end
