@@ -39,7 +39,7 @@ function ENTS.stmon.update(e)
     local los, dx, dy = has_line_of_sight(x, y, player_x, player_y)
     if los then
         e.flashing = true
-        e.visible_state_t = 1
+        e.visible_state_t = 0.8
         player.flashing = true
         
         while los > 1 do
@@ -404,20 +404,21 @@ function draw_entity(e)
         if anim[1] then
             draw_anim(px, py, anim, e.frame_animation)
         else
-            if e.visible_state_t and e.visible_state_t > 0 then
-                e.visible_state_t -= 1.0/FPS
-                if e.visible_state_t <= 0 then
-                    e.visible_state = nil
-                    e.flashing = false
-                    e.frame_animation_speed = nil
-                    e.frame_animation = nil
-                end
-            end
             local state = e.visible_state or e.state
             anim = anim[state]
             if anim then
                 draw_anim(px, py, anim, e.frame_animation)
             end
+        end
+    end
+    
+    if e.visible_state_t and e.visible_state_t > 0 then
+        e.visible_state_t -= 1.0/FPS
+        if e.visible_state_t <= 0 then
+            e.visible_state = nil
+            e.flashing = false
+            e.frame_animation_speed = nil
+            e.frame_animation = nil
         end
     end
     
