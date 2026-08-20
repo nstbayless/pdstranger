@@ -16,6 +16,9 @@ State = {
     -- map tidx -> true or anim
     explosions = {},
     
+    -- list of {tile=, x=, y=, t=}
+    icons = {},
+    
     -- map tidx -> list of entities intending to move there
     entity_moving_to={},
     

@@ -330,9 +330,12 @@ function ENTS.chest.interact(e, ei, dx, dy)
                 push_dialogue("Empty.", entity_dialogue_side(get_player()))
             elseif nloc == 1 then
                 success = gainLife()
+                
                 if not success then
                     push_dialogue("Huh!? Where did it go..?", entity_dialogue_side(get_player()))
                 else
+                    local ex,ey = tcoord_of(e.tidx)
+                    table.insert(State.icons, {tile=TILE_HUD_LOCUST, x=ex, y=ey})
                     if not GlobalState.hasGottenLocust then
                         GlobalState.hasGottenLocust = true
                         if GlobalState.void then
@@ -358,7 +361,7 @@ function ENTS.chest.interact(e, ei, dx, dy)
             return false
         end
         
-        ei.visible_state_t = 1.0
+        ei.visible_state_t = IDOL_TIME*1.1
         ei.visible_state = "item"
         ei.state = "s"
         return 1

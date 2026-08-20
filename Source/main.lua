@@ -557,6 +557,31 @@ function draw_explosions()
     end
 end
 
+function draw_icons()
+    if table.empty(State.icons) then return end
+    
+    if State.frame % 4 >= 2 then
+        playdate.graphics.setImageDrawMode(playdate.graphics.kDrawModeInverted)
+    end
+    
+    for i, icon in pairs(table.copy(State.icons)) do
+        if not icon.t then
+            icon.t = 0
+        end
+        icon.t += 1.0/FPS/IDOL_TIME
+        if icon.t >= 1 then
+            State.icons[i] = nil
+        else
+            local y = icon.y - math.min(icon.t, 0.3)*2.5
+            local px, py = pcoord_of(icon.x, y)
+            
+            draw_gfx(px, py, icon.tile)
+        end
+    end
+    
+    playdate.graphics.setImageDrawMode(playdate.graphics.kDrawModeCopy)
+end
+
 function playdate.update()
     -- update
     if in_dialogue() then
@@ -583,6 +608,7 @@ function playdate.update()
         draw_explosions()
     end
     draw_entities()
+    draw_icons()
     draw_special_animations()
     draw_dialogue()
     
