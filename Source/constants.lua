@@ -204,29 +204,34 @@ ENTS = {
     stadd = {
         sym = "A",
         push = true,
+        statue = true,
         anim = TSTRIDE*4 + 0,
     },
     
     steus = {
         sym = "E",
         push = true,
+        statue = true,
         anim = TSTRIDE*4 + 1,
     },
     
     stbee = {
         sym = "B",
         push = true,
+        statue = true,
         anim = TSTRIDE*4 + 2,
     },
     
     stmon = {
         sym = "M",
         push = true,
+        statue = true,
         anim = TSTRIDE*4 + 3,
     },
     
     sttan = {
         sym = "T",
+        statue = true,
         push = true,
         anim = TSTRIDE*4 + 4,
     },
@@ -234,22 +239,21 @@ ENTS = {
     stgor = {
         sym = "G",
         push = true,
-        anim = {off=TSTRIDE*4 + 5, on=TSTRIDE*4 + 6,
-            activating = {
-                TSTRIDE*4 + 5, TSTRIDE*4 + 6
-            }
-        },
+        statue = true,
+        anim = {off=TSTRIDE*4 + 5, on=TSTRIDE*4 + 6},
     },
     
     stlev = {
         sym = "L",
         push = true,
+        statue = true,
         anim = {off=TSTRIDE*4 + 7, on=TSTRIDE*4 + 8},
     },
     
     stcif = {
         sym = "C",
         push = true,
+        statue = true,
         anim = TSTRIDE*4 + 9,
     },
     

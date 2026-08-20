@@ -20,14 +20,31 @@ end
 
 function ENTS.stgor.onpush(e)
     e.state = "on"
-    e.visible_state = "activating"
+    e.flashing = true
     e.visible_state_t = SECONDARY_ANIMATIONS_TIME
-    e.frame_animation = 0
-    e.frame_animation_speed = 10
 end
 
 function ENTS.stgor.solid(e)
     return e.state == "on"
+end
+
+function ENTS.sttan.update(e)
+    
+    -- check if any enemies (or NPCs) alive
+    for tidx,e in pairs(State.ents) do
+        if e.base.enemy then
+            return
+        end
+    end
+    
+    e.flashing = true
+    e.animation_time = 0.7
+    table.insert(State.entity_animating, e)
+end
+
+function ENTS.sttan.on_animation_complete(e)
+    State.explosions[e.tidx] = true
+    entity_die(e)
 end
 
 function ENTS.stlev.init(e)
@@ -48,6 +65,7 @@ function ENTS.mim.update(e, dx, dy)
     if e.base.axis.x then dx *= -1 end
     if e.base.axis.y then dy *= -1 end
     
+    e.state = dir_to_cardinal(dx, dy)
     entity_prepare_move(e, dx, dy)
 end
 ENTS.mimx.update = ENTS.mim.update
@@ -341,6 +359,13 @@ function draw_entity(e)
         return
     end
     
+    local invert = false
+    if e.flashing then
+        if State.frame % 2 >= 1 then
+            playdate.graphics.setImageDrawMode(playdate.graphics.kDrawModeInverted)
+        end
+    end
+    
     local anim = base.anim
     if type(anim) == "number" then
         draw_gfx(px, py, anim)
@@ -352,6 +377,7 @@ function draw_entity(e)
                 e.visible_state_t -= 1.0/FPS
                 if e.visible_state_t <= 0 then
                     e.visible_state = nil
+                    e.flashing = false
                     e.frame_animation_speed = nil
                     e.frame_animation = nil
                 end
@@ -363,6 +389,8 @@ function draw_entity(e)
             end
         end
     end
+    
+    playdate.graphics.setImageDrawMode(playdate.graphics.kDrawModeCopy)
 end
 
 function draw_entities()
@@ -598,7 +626,8 @@ function entity_execute_move(e)
         add_entity_killing_player(q.e or e)
     elseif q.blocked == "push" then
         -- perform push
-        table.insert(State.entity_pushing, e)
+        table.insert(State.entity_animating, e)
+        e.pushing = true
         q.e.late_queued_move = {
             move=true,
             crush=true,
@@ -683,13 +712,15 @@ function shades_exist()
     return false
 end
 
-ROUND_PHASES = {"shade", "stairs", "mimic", "other"}
+ROUND_PHASES = {"shade", "stairs", "mimic", "other", "statue"}
 
 function entity_round_phase(e)
     if e.base.shade then
         return "shade"
     elseif e.base.mimic then
         return "mimic"
+    elseif e.basekey.statue then
+        return "statue"
     end
     return "other"
 end

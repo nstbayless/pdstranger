@@ -15,8 +15,8 @@ GlobalState = {
 GFX = playdate.graphics.imagetable.new("tiles")
 FONT = playdate.graphics.imagetable.new("font")
 
-load_brane("branes/b004")
-playdate.display.setRefreshRate(20)
+load_brane("branes/b006")
+playdate.display.setRefreshRate(FPS)
 
 queuedInput = nil
 queuedInputFrames = 0
@@ -72,8 +72,8 @@ function push_secondary_animations()
     if #State.entity_killing_player > 0 then
         t = math.max(t, KILLPLAYER_TIME)
     end
-    if #State.entity_pushing > 0 then
-        t = math.max(t, PUSH_TIME)
+    for i, e in ipairs(State.entity_animating) do
+        t = math.max(t, PUSH_TIME, e.animation_time or 0)
     end
     
     if t > 0 then
@@ -206,14 +206,16 @@ function processAction()
             end
             
             -- entities pushing
-            for tidx, e in pairs(State.entity_pushing) do
-                if not e.frame_animation then
-                    e.frame_animation = 0
-                end
-                e.frame_animation_speed = 10
-                local push_anim = "push" .. e.state
-                if e.base.anim[push_anim] then
-                    e.visible_state = push_anim
+            for tidx, e in pairs(State.entity_animating) do
+                if e.pushing then
+                    if not e.frame_animation then
+                        e.frame_animation = 0
+                    end
+                    e.frame_animation_speed = 10
+                    local push_anim = "push" .. e.state
+                    if e.base.anim[push_anim] then
+                        e.visible_state = push_anim
+                    end
                 end
             end
             
@@ -326,9 +328,12 @@ function processAction()
             e.frame_animation = nil
         end
         
-        for i, e in ipairs(State.entity_pushing) do
+        for i, e in ipairs(table.copy(State.entity_animating)) do
             e.visible_state = nil
             e.frame_animation = nil
+            if e.base.on_animation_complete then
+                e.base.on_animation_complete(e)
+            end
         end
         
         if #State.entity_killing_player > 0 then
@@ -339,7 +344,7 @@ function processAction()
         end
         
         State.entity_killing_player = {}
-        State.entity_pushing = {}
+        State.entity_animating = {}
     elseif action.type == "fall-panic" then
         local player = get_player()
         entity_die(player)

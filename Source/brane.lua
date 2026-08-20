@@ -24,7 +24,7 @@ State = {
     
     -- list of entities who have just pushed something,
     -- or are in some other animation
-    entity_pushing={},
+    entity_animating={},
     
     frames_per_anim_tick = 13,
     
