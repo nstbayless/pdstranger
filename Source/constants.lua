@@ -220,6 +220,7 @@ ENTS = {
         push = true,
         statue = true,
         anim = TSTRIDE*4 + 2,
+        bee = true,
     },
     
     stmon = {
@@ -258,6 +259,7 @@ ENTS = {
         sym = "C",
         push = true,
         statue = true,
+        cif = true,
         anim = TSTRIDE*4 + 9,
     },
     
@@ -489,6 +491,7 @@ PUSH_TIME = 0.2
 
 VOIDFADE_TIME = 0.9
 LIVEFADE_TIME = 0.4
+IRIS_SLOW_TIME = 2.5
 
 LEVZAP_PRE_TIME = 0.9
 LEVZAP_BOLT_TIME = 0.6

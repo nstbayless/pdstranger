@@ -9,13 +9,20 @@ import "dialogue"
 GlobalState = {
     void = false,
     hp = 7,
-    lives = 0,
+    lives = 2,
 }
 
 GFX = playdate.graphics.imagetable.new("tiles")
 FONT = playdate.graphics.imagetable.new("font")
 
-load_brane("branes/b004")
+function reset_game()
+    GlobalState.lives = 0
+    GlobalState.hp = 7
+    GlobalState.void = false
+    reset_state()
+    load_brane("branes/b004")
+end
+
 playdate.display.setRefreshRate(FPS)
 
 queuedInput = nil
@@ -52,10 +59,25 @@ function handleInput(input)
     end
 end
 
-function player_death()
+function player_death(e, cause)
     fade_pattern = randlist(32*32)
     local t = GlobalState.void and VOIDFADE_TIME or LIVEFADE_TIME
     local deathFade = pushAction({type="fadeout", speed=1.0/t, t=0})
+    
+    local x, y = tcoord_of(e.tidx)
+    
+    -- check for stbee
+    local en = ent_at(x, y-1)
+    local nloc = getLivesFromHUD()
+    if en and en.base.bee and nloc >= 1 and cause == "fall" then
+        GlobalState.lives = 0
+        deathFade.nextbrane = string.format("branes/b%03d", State.brane_number + nloc)
+        deathFade.iris = {x=x,y=y}
+        deathFade.speed=1.0/IRIS_SLOW_TIME
+        en.flashing = true
+        en.visible_state_t = 0.6
+        return
+    end
     
     if not GlobalState.void and GlobalState.lives >= 1 then
         pushAction({type="lifeloss", speed=1.0/0.6, t=0})
@@ -80,12 +102,6 @@ function push_secondary_animations()
         -- TODO: different time depending on whether killing (long), explosions (med), or push (short)
         
         pushAction({type="secondary", speed=1.0/t, t=0})
-        return true
-    end
-    
-    local player = get_player()
-    if not player then
-        player_death()
         return true
     end
     
@@ -136,14 +152,7 @@ function advance_round_phase()
             -- check if player has reached stairs
             if check_player_reached_stairs() then
                 State.entity_moves_pending = false
-                local player = get_player()
-                local player_x, player_y = tcoord_of(player.tidx)
-                
-                -- exit animation
-                player.frame_animation = 0
-                player.frame_animation_speed = 7
-                
-                pushAction({type="fadeout", speed=1.0/1.2, t=0, iris={x=player_x, y=player_y}, nextbrane=get_stairs_brane()})
+                exit_by_stairs()
                 return
             end
         else
@@ -298,7 +307,7 @@ function processAction()
         -- completed fade out
         local brane_path = action.nextbrane or State.path
         reset_state()
-        if GlobalState.lives == 0 then
+        if GlobalState.lives == 0 and not action.nextbrane then
             GlobalState.void = true
         end
         if action.lifeloss then
@@ -315,6 +324,9 @@ function processAction()
         end
         pushAction({type="fadein", t=0, speed=action.speed, lifeloss=action.lifeloss, voidfade=action.voidfade, iris=iris})
         fade_pattern = randlist(32*32)
+    elseif action.type == "atone" then
+        reset_game()
+        pushAction({type="fadein", t=0, speed=0.6, white=true})
     elseif action.type == "move" then
         State.round += 1
         
@@ -375,8 +387,7 @@ function processAction()
         State.entity_animating = {}
     elseif action.type == "fall-panic" then
         local player = get_player()
-        entity_die(player)
-        State.explosions[player.tidx] = true
+        entity_fall(player)
     elseif action.type == "coyote" then
         -- fall into pit
         action.e.offx = nil
@@ -419,6 +430,35 @@ function draw_special_animations()
                 playdate.graphics.fillRect(px - width, 0, width*2, py + GH)
             end
         end
+    elseif action.type == "atone" then
+        if action.t < 0.15 then
+            return
+        end
+        
+        local atone_x = 200
+        local atone_y = 120
+        local player = get_player()
+        if player then
+            player_x, player_y = tcoord_of(player.tidx)
+            if player_y >= H/2 then
+                atone_y = 50
+            else
+                atone_y = 190
+            end
+        end
+        
+        local p = action.t*2-1
+        if p >= 0 then
+            atone_x += (math.random() - math.random())*p*20
+            atone_y += (math.random() - math.random())*p*17
+        end
+        
+        local s = "Only a simple memory will remain"
+        atone_x -= #s*GW/4
+        atone_y -= GH/2
+        
+        draw_string(atone_x, atone_y, s)
+        
     elseif action.type == "fadein" or action.type == "fadeout" then
         local fadein = action.type == "fadein"
         local buff = get_offscreen_buffer()
@@ -449,7 +489,7 @@ function draw_special_animations()
                     
                     if not action.voidfade then
                         if not srf then
-                            srf = get_rand32_srf(fade_pattern, fadein and (1-t) or t, action.lifeloss and playdate.graphics.kColorWhite or playdate.graphics.kColorBlack)
+                            srf = get_rand32_srf(fade_pattern, fadein and (1-t) or t, (action.lifeloss or action.white) and playdate.graphics.kColorWhite or playdate.graphics.kColorBlack)
                         end
                         -- lifeloss fade
                         srf:draw(x*32, y*32)
@@ -527,9 +567,9 @@ function playdate.update()
     end
     
     -- draw
-    playdate.graphics.setColor(playdate.graphics.kColorBlack)
+    playdate.graphics.setColor(State.atone and playdate.graphics.kColorWhite or playdate.graphics.kColorBlack)
     playdate.graphics.fillRect(0, 0, 400, 240)
-    if not State.levzap then
+    if not State.levzap and not State.atone then
         draw_tiles()
         draw_explosions()
     end
@@ -565,3 +605,5 @@ function playdate.upButtonDown()
     queuedInput = {type="dir", dx=0, dy=-1}
     queuedInputFrames = 0
 end
+
+reset_game()

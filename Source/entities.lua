@@ -15,9 +15,8 @@ function ENTS.player.init(e)
 end
 
 function ENTS.steus.onpit(e)
-    State.explosions[e.tidx] = true
     State.tiles[e.tidx] = "floor"
-    entity_die(e)
+    entity_die(e, "explode")
     return true
 end
 
@@ -426,7 +425,9 @@ function draw_entity(e)
 end
 
 function entity_visible(e)
-    if State.levzap then
+    if State.atone then
+        return e.base.cif or e.base.player
+    elseif State.levzap then
         return e.base.lev or e.base.player
     else
         return true
@@ -586,8 +587,12 @@ function get_entity_by_basekey(basekey)
     return nil
 end
 
-function entity_die(e, animation)
+function entity_die(e, cause)
     if not e then return end
+    
+    if e.base.player then
+        player_death(e, cause)
+    end
     State.ents[e.tidx] = nil
 end
 
@@ -602,7 +607,7 @@ function entity_fall(e)
     -- standard fall & die
     -- TODO: fall animation
     State.explosions[e.tidx] = true
-    entity_die(e)
+    entity_die(e, "fall")
 end
 
 function entity_set_position(e, x, y)

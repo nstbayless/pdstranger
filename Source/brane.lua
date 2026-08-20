@@ -42,6 +42,8 @@ State = {
     
     brane_number = 1,
     memento = false,
+    levzap = false,
+    atone = false,
     
     -- path to brane file
     path = nil,
@@ -154,6 +156,25 @@ end
 
 function get_stairs_brane()
     return string.format("branes/b%03d", State.brane_number + 1)
+end
+
+function exit_by_stairs()
+    local player = get_player()
+    local player_x, player_y = tcoord_of(player.tidx)
+    
+    local en = ent_at(player_x, player_y - 1)
+    if en and en.base.cif then
+        en.flashing = true
+        en.visible_state_t = 0.5
+        State.atone=true
+        pushAction({type="atone", speed=1.0/6.0, t=0})
+    else
+        -- exit animation
+        player.frame_animation = 0
+        player.frame_animation_speed = 7
+        
+        pushAction({type="fadeout", speed=1.0/1.2, t=0, iris={x=player_x, y=player_y}, nextbrane=get_stairs_brane()})
+    end
 end
 
 local INTERFACE_TILES = {
@@ -280,6 +301,29 @@ function has_line_of_sight(x0, y0, x1, y1)
     end
     
     return i, dx, dy
+end
+
+function getLivesFromHUD()
+    local tidx = find_tile("hud", "_locust")
+    if not tidx and not tile_in_storage("hud", "_locust") then
+        -- no normal HUD here, can gain specially.
+        return GlobalState.lives
+    else
+        -- check HUD tile count
+        local x,y = tcoord_of(tidx)
+        local ntidx = tidx_of(x + 1, y)
+        if ntidx then
+            local nt, ntstate = tile_at(ntidx)
+            if nt == "hud" then
+                local nloc = string_to_number(ntstate)
+                if nloc then
+                    return nloc
+                end
+            end
+        end
+    end
+    
+    return 0
 end
 
 -- returns true if successful
