@@ -234,7 +234,11 @@ ENTS = {
     stgor = {
         sym = "G",
         push = true,
-        anim = {off=TSTRIDE*4 + 5, on=TSTRIDE*4 + 6},
+        anim = {off=TSTRIDE*4 + 5, on=TSTRIDE*4 + 6,
+            activating = {
+                TSTRIDE*4 + 5, TSTRIDE*4 + 6
+            }
+        },
     },
     
     stlev = {
@@ -270,7 +274,8 @@ ENTS = {
             pushw = 3*TSTRIDE + 13,
             pushs = 3*TSTRIDE + 14,
             pushn = 3*TSTRIDE + 15,
-            panic = {3*TSTRIDE + 16, 3*TSTRIDE + 17}
+            panic = {3*TSTRIDE + 16, 3*TSTRIDE + 17},
+            item = 3*TSTRIDE + 18,
         }
     },
     

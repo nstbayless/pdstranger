@@ -18,6 +18,18 @@ function ENTS.stgor.init(e)
     e.state = e.state or "off"
 end
 
+function ENTS.stgor.onpush(e)
+    e.state = "on"
+    e.visible_state = "activating"
+    e.visible_state_t = SECONDARY_ANIMATIONS_TIME
+    e.frame_animation = 0
+    e.frame_animation_speed = 10
+end
+
+function ENTS.stgor.solid(e)
+    return e.state == "on"
+end
+
 function ENTS.stlev.init(e)
     e.state = e.state or "off"
 end
@@ -298,7 +310,8 @@ function ENTS.chest.interact(e, ei, dx, dy)
             return false
         end
         
-        -- TODO: 'acquire' animation
+        ei.visible_state_t = 1.0
+        ei.visible_state = "item"
         ei.state = "s"
         return 1
     end
@@ -335,6 +348,14 @@ function draw_entity(e)
         if anim[1] then
             draw_anim(px, py, anim, e.frame_animation)
         else
+            if e.visible_state_t and e.visible_state_t > 0 then
+                e.visible_state_t -= 1.0/FPS
+                if e.visible_state_t <= 0 then
+                    e.visible_state = nil
+                    e.frame_animation_speed = nil
+                    e.frame_animation = nil
+                end
+            end
             local state = e.visible_state or e.state
             anim = anim[state]
             if anim then
@@ -372,6 +393,14 @@ function can_push(e, dx, dy)
     return result == nil
 end
 
+function get_entity_solid(e)
+    if type(e.base.solid) == "function" then
+        return e.base.solid(e)
+    else
+        return e.base.solid
+    end
+end
+
 -- returns nil if can move;
 -- returns string if something blocks
 -- second arg may indicate blocking entity
@@ -392,7 +421,7 @@ function get_entity_move_blocker(e, dx, dy, flags)
             return nil
         else
             local b, b2 = e.base, e2.base
-            if b2.solid then
+            if get_entity_solid(e2) then
                 return "stopped"
             elseif b2.shade and (flags & MOVE_FLAG_IGNORE_SHADES) ~= 0 then
                 return nil
@@ -557,15 +586,23 @@ function entity_execute_move(e)
                 end
 
                 entity_set_position(e, dstx, dsty)
+                
+                if q.pushed then
+                    if e.base.onpush then
+                        e.base.onpush(e, q.dx, q.dy)
+                    end
+                end
             end
         end
     elseif q.blocked == "pdie" then
         add_entity_killing_player(q.e or e)
     elseif q.blocked == "push" then
+        -- perform push
         table.insert(State.entity_pushing, e)
         q.e.late_queued_move = {
             move=true,
             crush=true,
+            pushed=true,
             dx=q.dx, dy=q.dy
         }
     end

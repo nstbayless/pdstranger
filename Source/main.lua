@@ -138,6 +138,11 @@ function advance_round_phase()
                 State.entity_moves_pending = false
                 local player = get_player()
                 local player_x, player_y = tcoord_of(player.tidx)
+                
+                -- exit animation
+                player.frame_animation = 0
+                player.frame_animation_speed = 7
+                
                 pushAction({type="fadeout", speed=1.0/1.2, t=0, iris={x=player_x, y=player_y}, nextbrane=get_stairs_brane()})
                 return
             end
@@ -387,12 +392,15 @@ function draw_special_animations()
             playdate.graphics.fillRect(0, 0, 400, py - GH*radius)
             playdate.graphics.fillRect(0, 0, px - GW*radius, 240)
         else
-            local srf = get_rand32_srf(fade_pattern, fadein and (1-t) or t, action.lifeloss and playdate.graphics.kColorWhite or playdate.graphics.kColorBlack)
+            local srf = nil
             for x=-1,W do
                 for y=-1,H do
                     local px, py = pcoord_of(x, y)
                     
                     if not action.voidfade then
+                        if not srf then
+                            srf = get_rand32_srf(fade_pattern, fadein and (1-t) or t, action.lifeloss and playdate.graphics.kColorWhite or playdate.graphics.kColorBlack)
+                        end
                         -- lifeloss fade
                         srf:draw(x*32, y*32)
                     else
