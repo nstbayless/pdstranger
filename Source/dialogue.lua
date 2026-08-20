@@ -6,8 +6,8 @@ function in_dialogue()
     return dialogueQueue[1]
 end
 
-function push_dialogue(msg, speaker)
-    table.insert(dialogueQueue, {msg=msg, speaker=speaker, c=0, l=1})
+function push_dialogue(msg, side, speaker)
+    table.insert(dialogueQueue, {msg=msg, side=side, speaker=speaker, c=0, l=1})
 end
 
 function draw_dialogue_box(x0, y0, w, h)
@@ -117,15 +117,30 @@ function tick_dialogue()
     end
 end
 
+function entity_dialogue_side(e)
+    if not e then return nil end
+    local x,y = tcoord_of(e.tidx)
+    
+    if y >= H-4 then
+        return -1
+    end
+    return 1
+end
+
 function draw_dialogue()
     local d = in_dialogue()
     if not d then return end
     
-    draw_dialogue_box(0,H-3,W,3)
+    local htop = H-3
+    if d.side and d.side < 0 then
+        htop = 0
+    end
+    
+    draw_dialogue_box(0,htop,W,3)
     
     if not d.lines then return end
     
-    local px, py = pcoord_of(0, H-3)
+    local px, py = pcoord_of(0, htop)
     px += 0.5*GW
     py += 0.5*GH
     
