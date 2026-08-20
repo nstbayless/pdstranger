@@ -15,7 +15,7 @@ GlobalState = {
 GFX = playdate.graphics.imagetable.new("tiles")
 FONT = playdate.graphics.imagetable.new("font")
 
-load_brane("branes/b008")
+load_brane("branes/b004")
 playdate.display.setRefreshRate(FPS)
 
 queuedInput = nil
@@ -170,6 +170,10 @@ function processAction()
 
     local action = actionQueue[#actionQueue]
     
+    if not action.logged then
+        action.logged = true
+        print("action: ", action.type)
+    end
     
     if action.t and action.t < 1 then
         
@@ -195,6 +199,12 @@ function processAction()
             end
         elseif action.type == "fall-panic" then
             player_panic_animation()
+        elseif action.type == "levzap-pre" then
+            State.levzap = true
+        elseif action.type == "levzap-bolt" then
+            --[[ for tidx, e in pairs(State.entity_killing_player) do
+                e.flashing = true
+            end ]]
         elseif action.type == "secondary" then
             -- entities killing player
             -- TODO: make it face player if possible
@@ -254,21 +264,25 @@ function processAction()
                 tstring = tstring or "wall"
                 
                 if State.rod_storage and TILES[tstring].pit then
-                    -- place in pit
+                    -- use rod (place in pit)
                     State.tiles[dstidx] = State.rod_storage.tstring
                     State.tiles_state[dstidx] = State.rod_storage.state
                     State.rod_storage = nil
                     State.entity_moves_pending = true
                     
                     player.rod_animation_timer = 0.42
+                    
+                    entity_rod_usage(player)
                 elseif not State.rod_storage and TILES[tstring].roddable then
-                    -- pick up tile
+                    -- use rod (pick up tile)
                     State.rod_storage = {tstring=tstring, state=state}
                     State.tiles[dstidx] = "void"
                     State.tiles_state[dstidx] = nil
                     
                     State.entity_moves_pending = true
                     player.rod_animation_timer = 0.35
+                    
+                    entity_rod_usage(player)
                 else
                     confusion = true
                 end
@@ -320,6 +334,18 @@ function processAction()
         
         -- update entities
         State.entity_moves_pending = true
+    elseif action.type == "levzap-bolt" then
+        for i, e in ipairs(State.entity_killing_player) do
+            e.visible_state = nil
+            e.frame_animation = nil
+        end
+        local player = get_player()
+        if player then
+            entity_die(player)
+            State.entity_moves_pending = false
+            State.explosions[player.tidx] = true
+        end
+        State.levzap = false
     elseif action.type == "secondary" then
         State.explosions = {}
         
@@ -338,9 +364,11 @@ function processAction()
         
         if #State.entity_killing_player > 0 then
             local player = get_player()
-            entity_die(player)
-            State.entity_moves_pending = false
-            State.explosions[player.tidx] = true
+            if player then
+                entity_die(player)
+                State.entity_moves_pending = false
+                State.explosions[player.tidx] = true
+            end
         end
         
         State.entity_killing_player = {}
@@ -360,7 +388,9 @@ function processAction()
         pushAction({type="fall-panic", t=0, speed=1.0/SECONDARY_ANIMATIONS_TIME})
     end
     
-    advance_round_phase()
+    if #actionQueue == 0 then
+        advance_round_phase()
+    end
 end
 
 function draw_special_animations()
@@ -372,6 +402,21 @@ function draw_special_animations()
             if player then
                 local px, py = pcoord_of(player.tidx)
                 draw_gfx(px, py, TILE_QUESTION)
+            end
+        end
+    elseif action.type == "levzap-bolt" then
+        local player = get_player()
+        if player then
+            local px, py = pcoord_of(player.tidx)
+            px += GW/2
+            if State.frame % 2 == 0 then
+                local t = 1.0 - (State.frame % 7) / 7
+                local width = 30*t
+                local margin = 8 - t
+                playdate.graphics.setPattern(COLOR_CHECKERBOARD)
+                playdate.graphics.fillRect(px - width - margin, 0, width*2 + margin*2, py + GH)
+                playdate.graphics.setColor(playdate.graphics.kColorWhite)
+                playdate.graphics.fillRect(px - width, 0, width*2, py + GH)
             end
         end
     elseif action.type == "fadein" or action.type == "fadeout" then
@@ -484,8 +529,10 @@ function playdate.update()
     -- draw
     playdate.graphics.setColor(playdate.graphics.kColorBlack)
     playdate.graphics.fillRect(0, 0, 400, 240)
-    draw_tiles()
-    draw_explosions()
+    if not State.levzap then
+        draw_tiles()
+        draw_explosions()
+    end
     draw_entities()
     draw_special_animations()
     draw_dialogue()

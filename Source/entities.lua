@@ -425,11 +425,19 @@ function draw_entity(e)
     playdate.graphics.setImageDrawMode(playdate.graphics.kDrawModeCopy)
 end
 
+function entity_visible(e)
+    if State.levzap then
+        return e.base.lev or e.base.player
+    else
+        return true
+    end
+end
+
 function draw_entities()
     for y = 0,H-1 do
         for x = 0,W-1 do
             local e = ent_at(x, y)
-            if e then
+            if e and entity_visible(e) then
                 draw_entity(e)
                 
                 if e.frame_animation then
@@ -784,4 +792,45 @@ function entities_round(player_dx, player_dy, phase)
     end
     
     execute_moves()
+end
+
+function lev_zap(e)
+    for tidx,e in pairs(State.ents) do
+        if e.base.lev then
+            table.insert(State.entity_killing_player, e)
+        end
+    end
+    
+    pushAction({type="levzap-bolt", t=0, speed=1.0/LEVZAP_BOLT_TIME})
+    pushAction({type="levzap-pre", t=0, speed=1.0/LEVZAP_PRE_TIME})
+end
+
+function entity_rod_usage(er)
+    -- find a statue of lev and activate it
+    local any_lev = false
+    local all_lev = true
+    for x=0,W-1 do
+        for y=0,H-1 do
+            local e = ent_at(x, y)
+            if e and e.base.lev then
+                print("lev:", tidx)
+                if e.state == "off" then
+                    if any_lev then
+                        all_lev = false
+                    else
+                        any_lev = true
+                        e.state = "on"
+                        e.visible_state = "activate"
+                        e.visible_state_t = 0.7
+                        e.frame_animation = 0
+                        e.frame_animation_speed = 8
+                    end
+                end
+            end
+        end
+    end
+    
+    if any_lev and all_lev then
+        lev_zap(er)
+    end
 end

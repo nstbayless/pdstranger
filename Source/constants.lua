@@ -247,7 +247,11 @@ ENTS = {
         sym = "L",
         push = true,
         statue = true,
-        anim = {off=TSTRIDE*4 + 7, on=TSTRIDE*4 + 8},
+        lev = true,
+        anim = {
+            off=TSTRIDE*4 + 7, on=TSTRIDE*4 + 8,
+            activate = {TSTRIDE*4 + 7, TSTRIDE*4 + 8}
+        },
     },
     
     stcif = {
@@ -485,3 +489,8 @@ PUSH_TIME = 0.2
 
 VOIDFADE_TIME = 0.9
 LIVEFADE_TIME = 0.4
+
+LEVZAP_PRE_TIME = 0.9
+LEVZAP_BOLT_TIME = 0.6
+
+COLOR_CHECKERBOARD = { 0xaa, 0x55, 0xaa, 0x55, 0xaa, 0x55, 0xaa, 0x55 }
