@@ -11,6 +11,7 @@ function ENTS.beaver.init(e)
 end
 
 function ENTS.player.init(e)
+    e.depth = 1
     e.state = e.state or "s"
 end
 
@@ -590,7 +591,8 @@ function draw_entity(e)
     playdate.graphics.setImageDrawMode(playdate.graphics.kDrawModeCopy)
 end
 
-function entity_visible(e)
+function entity_visible(e, depth)
+    if depth and depth ~= (e.depth or 0) then return false end
     if State.atone then
         return e.base.cif or e.base.player
     elseif State.levzap then
@@ -601,10 +603,9 @@ function entity_visible(e)
 end
 
 function draw_entities()
-    for y = 0,H-1 do
-        for x = 0,W-1 do
-            local e = ent_at(x, y)
-            if e and entity_visible(e) then
+    for depth=0,1 do
+        for tidx, e in pairs(State.ents) do
+            if e and entity_visible(e, depth) then
                 draw_entity(e)
                 
                 if e.frame_animation then
@@ -852,6 +853,7 @@ function entity_execute_move(e)
                 end
             end
 
+            local srcidx = e.tidx
             local srctile = TILES[tile_at(e.tidx) or "void"]
             local dsttile = TILES[tile_at(dstidx) or "wall"]
             
@@ -868,8 +870,9 @@ function entity_execute_move(e)
                 end
             end
             
+            State.tiles_exited[srcidx] = {e=e, dx=q.dx, dy=q.dy}
+            
             if not pitfall then
-                State.tiles_exited[e.tidx] = {e=e, dx=q.dx, dy=q.dy}
                 State.tiles_entered[dstidx] = {e=e, dx=q.dx, dy=q.dy}
 
                 -- shade trail propagation
@@ -1069,4 +1072,19 @@ function entity_rod_usage(er)
     if any_lev and all_lev then
         lev_zap(er)
     end
+end
+
+function sword_usable()
+    local player = get_player()
+    if player then
+        local x,y = tcoord_of(player.tidx)
+        local dx,dy = cardinal_to_dir(player.state)
+        
+        local e2 = ent_at(x+dx, y+dy)
+        if e2 and e2.base.swordable then
+            return true
+        end
+    end
+    
+    return false
 end

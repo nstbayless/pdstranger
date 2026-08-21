@@ -42,6 +42,14 @@ function draw_string(px, py, s, flags)
             t = 39
         end
         
+        if c == string.byte("[") then
+            t = 40
+        end
+        
+        if c == string.byte("]") then
+            t = 41
+        end
+        
         if t >= 0 then
             FONT:drawImage(t + 1, px, py)
         end

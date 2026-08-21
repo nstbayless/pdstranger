@@ -188,7 +188,11 @@ function TILES.hud.draw(x, y, tstate)
     elseif tstate == "_i2" then
         draw_gfx(px, py, TILE_HUD_BDN_WINGS)
     elseif tstate == "_i3" then
+        if State.frame % 4 < 2 and sword_usable() then
+            playdate.graphics.setImageDrawMode(playdate.graphics.kDrawModeInverted)
+        end
         draw_gfx(px, py, TILE_HUD_BDN_SWORD)
+        playdate.graphics.setImageDrawMode(playdate.graphics.kDrawModeCopy)
     elseif tstate == "_brane" then
         if State.brane_number then
             draw_string(px, py, string.format("B%0d", math.floor(State.brane_number/100)%10))

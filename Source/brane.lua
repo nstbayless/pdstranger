@@ -167,6 +167,9 @@ function reset_state()
 end
 
 function get_stairs_brane()
+    if State.nextbrane then
+        return State.nextbrane
+    end
     return string.format("branes/b%03d", State.brane_number + 1)
 end
 

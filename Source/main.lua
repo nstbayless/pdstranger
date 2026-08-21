@@ -27,7 +27,7 @@ function get_starting_brane()
             return string.sub(arg, #"brane="+1)
         end
     end
-    return "branes/b004"
+    return "branes/b001"
 end
 
 function reset_game()
@@ -36,7 +36,6 @@ function reset_game()
     GlobalState.void = false
     reset_state()
     load_brane(get_starting_brane())
-    GlobalState.hasrod = State.brane_number >= 3
 end
 
 playdate.display.setRefreshRate(FPS)
@@ -74,7 +73,7 @@ function handleInput(input)
             pushAction({type="move", e=player, dx=input.dx, dy=input.dy})
         end
     elseif input.type == "act" then
-        pushAction({type="act"})
+        pushAction({type="act", e=player})
     end
 end
 
@@ -328,12 +327,17 @@ function processAction()
     actionQueue[#actionQueue] = nil
     
     if action.type == "act" then
-        local player = get_player()
+        local player = action.e
         player.rod_animation_timer = nil
         State.player_dx, State.player_dy = 0, 0
         local dx, dy = cardinal_to_dir(player.state)
         local x, y = tcoord_of(player.tidx)
         local e = ent_at(x + dx, y + dy)
+        
+        -- end item-get pose
+        player.visible_state = nil
+        player.visible_state_t = nil
+        
         local confusion = false
         if e then
             local result = entity_interact(e, player, dx, dy)
@@ -410,7 +414,9 @@ function processAction()
         if not load_brane(brane_path) then
             reset_game()
         end
-        State.empty_chests = chests
+        if action.retry_brane then
+            State.empty_chests = chests
+        end
         if GlobalState.hp == 0 then
             GlobalState.hp = 7
         end
@@ -432,6 +438,8 @@ function processAction()
         
         -- animation
         action.e.rod_animation_timer = nil
+        action.e.visible_state = nil
+        action.e.visible_state_t = nil
         
         -- record direction for mimic movement later
         State.player_dx, State.player_dy = action.dx, action.dy
@@ -793,6 +801,7 @@ for i, arg in ipairs(playdate.argv) do
 end
 
 reset_game()
+GlobalState.hasrod = (not State.brane_number) or State.brane_number >= 3
 
 -- music
 fp = playdate.sound.fileplayer.new("music/voidsymphony")

@@ -3,7 +3,9 @@ import "brane"
 
 local function parse_command(argv)
     if #argv == 0 then return end
-    if argv[1] == "ent" then
+    if argv[1] == "nextbrane" then
+        State.nextbrane = argv[2]
+    elseif argv[1] == "ent" then
         local e = {}
         -- flags
         
