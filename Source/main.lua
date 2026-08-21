@@ -81,7 +81,6 @@ function player_death(e, cause)
     fade_pattern = randlist(32*32)
     local t = GlobalState.void and VOIDFADE_TIME or LIVEFADE_TIME
     local deathFade = pushAction({type="fadeout", speed=1.0/t, t=0})
-    
     local x, y = tcoord_of(e.tidx)
     
     -- check for stbee
@@ -104,6 +103,8 @@ function player_death(e, cause)
         pushAction({type="lifeloss", speed=1.0/1.5, t=0})
         deathFade.lifeloss = true
     end
+    
+    deathFade.retry_brane = true
     
     if cause ~= "fall" and not GlobalState.void then
         -- set HP to 0
@@ -396,6 +397,8 @@ function processAction()
 
         applyHUDChanges()
         
+        local chests = action.retry_brane and State.empty_chests or {}
+        
         reset_state()
         if GlobalState.lives == 0 and not action.nextbrane then
             GlobalState.void = true
@@ -406,6 +409,7 @@ function processAction()
         if not load_brane(brane_path) then
             reset_game()
         end
+        State.empty_chests = chests
         if GlobalState.hp == 0 then
             GlobalState.hp = 7
         end

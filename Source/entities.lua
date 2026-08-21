@@ -363,6 +363,11 @@ function ENTS.chest.interact(e, ei, dx, dy)
         if e.state == "on" then
             e.state = "off"
             local nloc = e.count or 1
+            if (State.empty_chests[e.tidx]) then
+                nloc = 0
+            end
+            
+            State.empty_chests[e.tidx] = true
             
             enqueue_sfx("snd_activate")
             

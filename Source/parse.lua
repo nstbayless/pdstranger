@@ -1,7 +1,7 @@
 import "constants"
 import "brane"
 
-function load_brane(path)
+function load_brane(path, retry)
     local file = playdate.file.open(path, playdate.file.kFileRead)
     if not file then
         return false
@@ -12,6 +12,10 @@ function load_brane(path)
     State.ents = {}
     State.path = path
     State.brane_number = nil
+    
+    if not retry then
+        State.empty_chests = {}
+    end
     
     for i=0,255 do
         if path == string.format("branes/b%03d", i) then

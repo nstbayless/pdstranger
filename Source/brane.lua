@@ -37,6 +37,9 @@ State = {
     
     frames_per_anim_tick = 13,
     
+    -- set: tidx
+    empty_chests={},
+    
     -- ticks at FPS
     frame = 0,
     
