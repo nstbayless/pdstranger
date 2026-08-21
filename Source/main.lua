@@ -100,6 +100,28 @@ function player_death(e, cause)
         deathFade.lifeloss = true
     end
     
+    if cause ~= "fall" and not GlobalState.void then
+        -- set HP to 0
+        GlobalState.hp = 0
+        
+        -- update HUD
+        local tidx = find_tile("hud", "HP")
+        if tidx then 
+            local x,y = tcoord_of(tidx)
+            local ntidx = tidx_of(x + 1, y)
+            if ntidx then
+                local nt, ntstate = tile_at(ntidx)
+                if nt == "hud" then
+                    local nloc = string_to_number(ntstate)
+                    if nloc then
+                        State.tiles_state[ntidx] = "00"
+                        return true
+                    end
+                end
+            end
+        end
+    end
+    
     deathFade.voidfade = GlobalState.void
 end
 
@@ -366,6 +388,9 @@ function processAction()
         end
         if not load_brane(brane_path) then
             reset_game()
+        end
+        if GlobalState.hp == 0 then
+            GlobalState.hp = 7
         end
         local iris=nil
         if action.nextbrane then

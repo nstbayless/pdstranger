@@ -147,8 +147,14 @@ function TILES.hud.onrod(tidx, tstate, action)
             if number ~= State.brane_number then
                 pushAction({type="fadeout", speed=1.0/0.8, t=0, iris={x=x, y=y}, nextbrane=string.format("branes/b%03d", number)})
             end
+        elseif ntstring == "hud" and nstate == "HP" then
+            GlobalState.hp = number
+            if number == 0 then
+                enqueue_sfx("snd_player_damage")
+                entity_die(get_player())
+            end
         end
-    elseif tstate == "_brane" and action == "place" then
+    elseif tstate == "_brane" and action == "store" then
         -- TODO -- br nil?
         reset_game()
     end
