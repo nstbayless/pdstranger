@@ -4,7 +4,7 @@ import "brane"
 function load_brane(path)
     local file = playdate.file.open(path, playdate.file.kFileRead)
     if not file then
-        error("brane not found: " .. path)
+        return false
     end
     
     -- clear relevant state
@@ -68,4 +68,5 @@ function load_brane(path)
     end
     
     load_hud()
+    return true
 end

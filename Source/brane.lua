@@ -237,11 +237,7 @@ function load_hud()
         elseif itile == "rod" then
             tstate = "_rod"
         elseif itile == "b0" then
-            if State.brane_number then
-                tstate = string.format("B%0d", math.floor(State.brane_number/100)%10)
-            else
-                tstate = "B?"
-            end
+            tstate = "_brane"
         elseif itile == "b1" then
             if State.brane_number then
                 tstate = string.format("%02d", State.brane_number%100)

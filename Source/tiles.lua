@@ -136,6 +136,24 @@ function TILES.hud.rodbox(tstate)
     end
 end
 
+function TILES.hud.onrod(tidx, tstate, action)
+    local x, y = tcoord_of(tidx)
+    local number = string_to_number(tstate)
+    print("hud swap", tstate)
+    if number then
+        local ntstring, nstate = tile_at(x-1, y)
+        if ntstring == "hud" and nstate == "_brane" and State.brane_number and action == "place" then
+            number += math.floor(State.brane_number / 100)*100
+            if number ~= State.brane_number then
+                pushAction({type="fadeout", speed=1.0/0.8, t=0, iris={x=x, y=y}, nextbrane=string.format("branes/b%03d", number)})
+            end
+        end
+    elseif tstate == "_brane" and action == "place" then
+        -- TODO -- br nil?
+        reset_game()
+    end
+end
+
 function TILES.void.draw()
     return true
 end
@@ -145,8 +163,15 @@ function TILES.hud.draw(x, y, tstate)
     draw_gfx(px, py, TILE_B_HUD)
     
     if tstate == "_memento" then
+        -- TODO
     elseif tstate == "_locust" then
         draw_gfx(px, py, TILE_HUD_LOCUST)
+    elseif tstate == "_brane" then
+        if State.brane_number then
+            draw_string(px, py, string.format("B%0d", math.floor(State.brane_number/100)%10))
+        else
+            draw_string(px, py, "B?")
+        end
     elseif tstate == "_rod" then
         draw_gfx(px, py, TILE_HUD_ROD)
         if State.rod_storage then

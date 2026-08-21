@@ -310,13 +310,18 @@ function processAction()
                 tstring = tstring or "wall"
                 
                 if State.rod_storage and TILES[tstring].pit then
-                    -- use rod (place in pit)
+                    -- use rod (place a tile)
                     State.tiles[dstidx] = State.rod_storage.tstring
                     State.tiles_state[dstidx] = State.rod_storage.state
+                    
                     State.rod_storage = nil
                     State.entity_moves_pending = true
                     
                     player.rod_animation_timer = 0.42
+                    
+                    if TILES[State.tiles[dstidx]].onrod then
+                        TILES[State.tiles[dstidx]].onrod(dstidx, State.tiles_state[dstidx], "place")
+                    end
                     
                     enqueue_sfx("snd_voidrod_store")
                     entity_rod_usage(player)
@@ -329,6 +334,10 @@ function processAction()
                     State.entity_moves_pending = true
                     player.rod_animation_timer = 0.35
                     enqueue_sfx("snd_voidrod_place")
+                    
+                    if TILES[tstring].onrod then
+                        TILES[tstring].onrod(dstidx, state, "store")
+                    end
                     
                     entity_rod_usage(player)
                 else
@@ -355,7 +364,9 @@ function processAction()
         if action.lifeloss then
             GlobalState.lives -= 1
         end
-        load_brane(brane_path)
+        if not load_brane(brane_path) then
+            reset_game()
+        end
         local iris=nil
         if action.nextbrane then
             local player = get_player()
@@ -721,3 +732,9 @@ function playdate.upButtonDown()
 end
 
 reset_game()
+
+-- music
+fp = playdate.sound.fileplayer.new("music/voidsymphony")
+fp:setVolume(0.5)
+fp:setLoopRange(2*60 + 7.2, 5*60 + 9.45)
+fp:play(0)
