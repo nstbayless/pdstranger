@@ -173,11 +173,32 @@ function ENTS.shade.update(e)
     e.state = dir_to_cardinal(facing.dx, facing.dy)
 end
 
+function draw_wings(px, py, e)
+    if e.offx then px += e.offx*GW end
+    if e.offy then py += e.offy*GH end
+    local state = e.visible_state or e.state
+    draw_anim(px, py, e.base.anim["fly" .. state .. "l"])
+    draw_anim(px, py, e.base.anim["fly" .. state .. "r"])
+    draw_anim(px, py, e.base.anim["fly" .. state])
+end
+
 function ENTS.player.draw(e)
     local px, py = pcoord_of(e.tidx)
     
+    if e.fly then
+        e.fly = false
+        if e.state == "s" then
+            draw_wings(px, py, e)
+            draw_entity(e)
+        else
+            draw_entity(e)
+            draw_wings(px, py, e)
+        end
+        e.fly = true
+        return true
+    end
+    
     if e.rod_animation_timer then
-        
         e.rod_animation_timer -= 1.0/FPS
         if e.rod_animation_timer <= 0 then
             e.rod_animation_timer = nil
@@ -487,6 +508,10 @@ function get_entity_solid(e)
     end
 end
 
+function entity_canfly(e)
+    return e.base.player and not e.fly and GlobalState.burdens[BURDEN_WINGS]
+end
+
 -- returns nil if can move;
 -- returns string if something blocks
 -- second arg may indicate blocking entity
@@ -650,8 +675,14 @@ function entity_die(e, cause)
     State.ents[e.tidx] = nil
 end
 
-function entity_fall(e)
+function entity_fall(e, skippanic)
     if not e then return end
+    
+    e.fly = false
+    if e.base.player and not skippanic then
+        pushAction({type="fall-panic", t=0, speed=1.0/SECONDARY_ANIMATIONS_TIME})
+        return
+    end
     
     -- standard fall & die
     entity_die(e, "fall")
@@ -695,10 +726,21 @@ function entity_execute_move(e)
 
             local srctile = TILES[tile_at(e.tidx) or "void"]
             local dsttile = TILES[tile_at(dstidx) or "wall"]
+            
+            local pitfall = false
+            
             if dsttile.pit then
-                entity_set_position(e, dstidx)
-                entity_fall(e)
-            else
+                if entity_canfly(e) then
+                    e.fly = true
+                    enqueue_sfx("snd_wingspawn")
+                else
+                    entity_set_position(e, dstidx)
+                    entity_fall(e)
+                    pitfall = true
+                end
+            end
+            
+            if not pitfall then
                 State.tiles_exited[e.tidx] = {e=e, dx=q.dx, dy=q.dy}
                 State.tiles_entered[dstidx] = {e=e, dx=q.dx, dy=q.dy}
 
@@ -728,6 +770,9 @@ function entity_execute_move(e)
         enqueue_sfx("snd_push_small")
         table.insert(State.entity_animating, e)
         e.pushing = true
+        if e.fly then
+            entity_fall(e)
+        end
     elseif q.blocked == "push" then
         -- perform push
         table.insert(State.entity_animating, e)
@@ -738,6 +783,9 @@ function entity_execute_move(e)
             pushed=true,
             dx=q.dx, dy=q.dy
         }
+        if e.fly then
+            entity_fall(e)
+        end
         enqueue_sfx("snd_push")
     end
     
@@ -817,7 +865,7 @@ function shades_exist()
     return false
 end
 
-ROUND_PHASES = {"shade", "_stairs", "mimic", "other", "_stairs", "_tiles", "statue"}
+ROUND_PHASES = {"shade", "_stairs", "mimic", "other", "_stairs", "_tiles", "statue", "_post"}
 
 function entity_round_phase(e)
     if e.base.shade then

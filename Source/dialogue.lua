@@ -102,6 +102,7 @@ function tick_dialogue()
         end
     elseif d.c < #d.lines[d.l] then
         d.c += 1
+        play_sfx("snd_voice2")
         if d.c == #d.lines[d.l] then
             if #d.lines == d.l then
                 d.wait = true

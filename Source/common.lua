@@ -62,6 +62,7 @@ function draw_gfx(px, py, gfxidx)
 end
 
 function draw_anim(px, py, anim, f)
+    if not anim then return end
     f = f or State.frame_animation
     if type(anim) == "number" then
         draw_gfx(px, py, anim)
@@ -75,7 +76,7 @@ function draw_anim(px, py, anim, f)
     end
     f = math.floor(f)
     f %= #anim
-    draw_gfx(px, py, anim[f + 1])
+    draw_gfx(px + (anim.offx or 0), py + (anim.offy or 0), anim[f + 1])
 end
 
 function hex(n)

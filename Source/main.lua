@@ -67,7 +67,7 @@ function handleInput(input)
     if input.type == "dir" then
         local neighbour = TILES[tile_at(player_x + input.dx, player_y + input.dy) or "wall"]
         
-        if neighbour.pit then
+        if neighbour.pit and (not GlobalState.burdens[BURDEN_WINGS] or player.fly) then
             pushAction({type="coyote", e=player, dx=input.dx, dy=input.dy, t=0, speed=1})
         else
             pushAction({type="move", e=player, dx=input.dx, dy=input.dy})
@@ -198,6 +198,16 @@ function advance_round_phase()
                 State.entity_moves_pending = false
                 exit_by_stairs()
                 return
+            end
+        elseif phase == "_post" then
+            -- cleanup (stop flying)
+            for tidx, e in pairs(State.ents) do
+                if e.fly then
+                    local tstring, tstate = tile_at(tidx)
+                    if not TILES[tstring].pit then
+                        e.fly = false
+                    end
+                end
             end
         elseif phase == "_tiles" then
             -- activate triggered tiles
@@ -485,7 +495,7 @@ function processAction()
         State.entity_animating = {}
     elseif action.type == "fall-panic" then
         local player = get_player()
-        entity_fall(player)
+        entity_fall(player, true)
     elseif action.type == "coyote" then
         -- fall into pit
         action.e.offx = nil

@@ -1,3 +1,7 @@
+-- grid size
+GW = 24
+GH = 24
+
 TSTRIDE = 20
 
 TILE_B_VOID = 0
@@ -312,6 +316,13 @@ ENTS = {
             swds = 9*TSTRIDE + 18,
             swdn = 9*TSTRIDE + 19,
             
+            flynl = {10*TSTRIDE + 16, 10*TSTRIDE + 17, superfast=true, offx=-GW/2},
+            flynr = {-10*TSTRIDE - 16, -10*TSTRIDE - 17, superfast=true, offx=GW/2},
+            flysl = {10*TSTRIDE + 16, 10*TSTRIDE + 17, superfast=true, offy=-4, offx=-GW/2},
+            flysr = {-10*TSTRIDE - 16, -10*TSTRIDE - 17, superfast=true, offy=-4, offx=GW/2},
+            flye = {10*TSTRIDE + 16, 10*TSTRIDE + 18, superfast=true, offx=-GW + 4},
+            flyw = {-10*TSTRIDE - 16, -10*TSTRIDE - 18, superfast=true, offx=GW - 4},
+            
             pushe = 3*TSTRIDE + 12,
             pushw = 3*TSTRIDE + 13,
             pushs = 3*TSTRIDE + 14,
@@ -520,10 +531,6 @@ W = math.floor(400/24)
 H = math.floor(240/24)
 
 TIDX_MAX = W*H
-
--- grid size
-GW = 24
-GH = 24
 
 XOFF = math.floor((400 - (W * GW)) / 2)
 YOFF = math.floor((240 - (H * GH)) / 2)
