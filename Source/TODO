@@ -1,9 +1,6 @@
 - tile animations (ice, stairs, button, etc.)
 - falling into pit animation
 - if an entity dies while on ice, the ice breaks
-- burdens
-  - memory
-  - sword
-  - wings
+- sword burden flashes when usable
 - synchronize music
 - crush faller under tile

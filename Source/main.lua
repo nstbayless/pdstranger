@@ -36,6 +36,7 @@ function reset_game()
     GlobalState.void = false
     reset_state()
     load_brane(get_starting_brane())
+    GlobalState.hasrod = State.brane_number >= 3
 end
 
 playdate.display.setRefreshRate(FPS)
@@ -347,7 +348,7 @@ function processAction()
                 local tstring, state = tile_at(dstidx)
                 tstring = tstring or "wall"
                 
-                if State.rod_storage and TILES[tstring].pit then
+                if State.rod_storage and TILES[tstring].pit and GlobalState.hasrod then
                     -- use rod (place a tile)
                     State.tiles[dstidx] = State.rod_storage.tstring
                     State.tiles_state[dstidx] = State.rod_storage.state
@@ -364,7 +365,7 @@ function processAction()
                     
                     enqueue_sfx("snd_voidrod_store")
                     entity_rod_usage(player)
-                elseif not State.rod_storage and TILES[tstring].roddable then
+                elseif not State.rod_storage and TILES[tstring].roddable and GlobalState.hasrod then
                     -- use rod (pick up tile)
                     State.rod_storage = {tstring=tstring, state=state}
                     State.tiles[dstidx] = "void"

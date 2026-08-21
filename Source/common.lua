@@ -237,3 +237,13 @@ function string.startswith(s, prefix)
     end
     return false
 end
+
+function string.split(s, pattern)
+    local words = {}
+
+    for word in string.gmatch(s, pattern or "%S+") do
+        table.insert(words, word)
+    end
+    
+    return words
+end

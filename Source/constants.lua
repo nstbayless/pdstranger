@@ -363,6 +363,16 @@ ENTS = {
         anim={on=TSTRIDE*4 + 11, off=TSTRIDE*4 + 12},
     },
     
+    superchest = {
+        solid=true,
+        chest=true,
+        anim={
+            onl=TSTRIDE*4 + 13, offl=TSTRIDE*4 + 15,
+            onr=TSTRIDE*4 + 14, offr=TSTRIDE*4 + 16,
+            on=TSTRIDE*4 + 17, off=TSTRIDE*4 + 18,
+        },
+    },
+    
     leech = {
         sym = {
             e="e",

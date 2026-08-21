@@ -245,6 +245,8 @@ function load_hud()
             burden_idx = string_to_number(string.sub(itile, 2, 2))
             if burden_idx and GlobalState.burdens[burden_idx] then
                 tstate = "_" .. itile
+            else
+                tstate = "_n" .. itile
             end
         elseif itile == "b1" then
             if State.brane_number then

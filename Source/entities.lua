@@ -358,6 +358,122 @@ ENTS.mimx.interact = ENTS.mim.interact
 ENTS.mimy.interact = ENTS.mim.interact
 ENTS.mimxy.interact = ENTS.mim.interact
 
+function superchest_redundant(e)
+    if e.item == "rod" then
+        return GlobalState.hasrod
+    end
+    
+    if e.item == "memory" then
+        return GlobalState.burdens[BURDEN_MEMORY]
+    end
+    
+    if e.item == "wings" then
+        return GlobalState.burdens[BURDEN_WINGS]
+    end
+    
+    if e.item == "sword" then
+        return GlobalState.burdens[BURDEN_SWORD]
+    end
+    
+    return true
+end
+
+local superchest_messages = {
+    rod = {
+        "[You acquired a strange rod]",
+        "[Simply holding it makes you feel uneasy]",
+        "[Something is wrong]",
+    },
+    memory = {
+        "[You acquired a strange feeling]",
+        "[Your mind feels heavier]",
+        "[... You don't know what to make of it]",
+    },
+    sword = {
+        "[You acquired a strange sword]",
+        "[Its ornate design makes it rather cumbersome to use]",
+        "[Who knows, maybe it will come in handy in the long run]",
+    },
+    wings = {
+        "[You acquired a strange pair of wings]",
+        "[They feel extremely brittle]",
+        "[Who knows, maybe they'll come in handy in the long run]",
+    },
+}
+
+function ENTS.superchest.init(e)
+    e.side = nil
+    if e.state == "l" then e.side = "l" end
+    if e.state == "r" then e.side = "r" end
+    
+    e.state = superchest_redundant(e) and "off" or "on"
+    
+    if e.side then
+        e.state = e.state .. e.side
+    end
+end
+
+function ENTS.superchest.interact(e, ei, dx, dy)
+    if not string.startswith(e.state, "on") then
+        return
+    else
+        local x, y = tcoord_of(e.tidx)
+        local e2 = nil
+        if e.side == "l" then
+            e2 = ent_at(x + 1, y)
+        elseif e.side == "r" then
+            e2 = ent_at(x - 1, y)
+        end
+        
+        if e2 and e2.basekey == "superchest" then
+            e2.state = "off" .. e2.side
+        end
+        e.state = "off" .. e.side
+        
+        local icon = nil
+        
+        if e.item == "rod" then
+            GlobalState.hasrod = true
+            icon = TILE_HUD_ROD
+        elseif e.item == "memory" then
+            GlobalState.burdens[BURDEN_MEMORY] = true
+            icon = TILE_HUD_BDN_MEMORY
+            local tidx = find_tile("hud", "_ni1")
+            if tidx then
+                State.tiles_state[tidx] = "_i1"
+            end
+        elseif e.item == "wings" then
+            GlobalState.burdens[BURDEN_WINGS] = true
+            icon = TILE_HUD_BDN_WINGS
+            local tidx = find_tile("hud", "_ni2")
+            if tidx then
+                State.tiles_state[tidx] = "_i2"
+            end
+        elseif e.item == "sword" then
+            GlobalState.burdens[BURDEN_SWORD] = true
+            icon = TILE_HUD_BDN_SWORD
+            local tidx = find_tile("hud", "_ni3")
+            if tidx then
+                State.tiles_state[tidx] = "_i3"
+            end
+        end
+        
+        if icon then
+            table.insert(State.icons, {tile=icon, x=x, y=y})
+        end
+        
+        ei.visible_state_t = IDOL_TIME*1.1
+        ei.visible_state = "item"
+        ei.state = "s"
+        
+        for _, message in ipairs(superchest_messages[e.item]) do
+            push_dialogue(message, entity_dialogue_side(ei))
+        end
+        
+        return true
+    end
+end
+
 function ENTS.chest.interact(e, ei, dx, dy)
     if dy == -1 then
         if e.state == "on" then

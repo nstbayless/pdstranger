@@ -196,19 +196,21 @@ function TILES.hud.draw(x, y, tstate)
             draw_string(px, py, "B?")
         end
     elseif tstate == "_rod" then
+        if GlobalState.hasrod then
         draw_gfx(px, py, TILE_HUD_ROD)
-        if State.rod_storage then
-            local rbase = TILES[State.rod_storage.tstring]
-            local rstate = State.rod_storage.state
-            if type(rbase.rodbox) == "number" then
-                draw_gfx(px, py, rbase.rodbox or TILE_ROD_BOX_UNK)
-            elseif type(rbase.rodbox) == "function" then
-                draw_gfx(px, py, rbase.rodbox(rstate) or TILE_ROD_BOX_UNK)
-            else
-                draw_gfx(px, py, TILE_ROD_BOX_UNK)
+            if State.rod_storage then
+                local rbase = TILES[State.rod_storage.tstring]
+                local rstate = State.rod_storage.state
+                if type(rbase.rodbox) == "number" then
+                    draw_gfx(px, py, rbase.rodbox or TILE_ROD_BOX_UNK)
+                elseif type(rbase.rodbox) == "function" then
+                    draw_gfx(px, py, rbase.rodbox(rstate) or TILE_ROD_BOX_UNK)
+                else
+                    draw_gfx(px, py, TILE_ROD_BOX_UNK)
+                end
             end
         end
-    elseif type(tstate) == "string" then
+    elseif type(tstate) == "string" and not string.startswith(tstate, "_") then
         draw_string(px, py, tstate)
     end
     
