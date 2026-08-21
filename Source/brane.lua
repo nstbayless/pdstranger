@@ -326,7 +326,6 @@ function getLivesFromHUD()
             local nt, ntstate = tile_at(ntidx)
             if nt == "hud" then
                 local nloc = string_to_number(ntstate)
-                print(ntstate, nloc)
                 if nloc then
                     return nloc
                 end

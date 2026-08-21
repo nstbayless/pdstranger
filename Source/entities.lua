@@ -14,10 +14,12 @@ function ENTS.player.init(e)
     e.state = e.state or "s"
 end
 
-function ENTS.steus.onpit(e)
-    State.tiles[e.tidx] = "floor"
-    entity_die(e, "explode")
-    return true
+function ENTS.steus.ondeath(e, cause)
+    if cause == "fall" then
+        State.tiles[e.tidx] = "floor"
+        entity_die(e, "explode")
+        return true
+    end
 end
 
 function ENTS.stgor.init(e)
@@ -84,6 +86,21 @@ function ENTS.stlev.init(e)
     e.state = e.state or "off"
 end
 
+function ENTS.stlev.ondeath(e)
+    -- transfer to another statue
+    if e.state == "on" then
+        entity_rod_usage(get_player())
+    end
+end
+
+function ENTS.player.ondeath(e, cause)
+    player_death(e, cause)
+end
+
+function ENTS.shade.ondeath(e, cause)
+    entity_die(get_player(), "shade")
+end
+
 function ENTS.mim.init(e)
     e.state = "s"
     if e.base.axis.y then
@@ -95,9 +112,12 @@ ENTS.mimy.init = ENTS.mim.init
 ENTS.mimxy.init = ENTS.mim.init
 
 function ENTS.mim.update(e, dx, dy)
+    if dx == 0 and dy == 0 then
+        return
+    end
     if e.base.axis.x then dx *= -1 end
     if e.base.axis.y then dy *= -1 end
-    
+
     e.state = dir_to_cardinal(dx, dy)
     entity_prepare_move(e, dx, dy)
 end
@@ -589,11 +609,12 @@ end
 function entity_die(e, cause)
     if not e then return end
     
-    if e.base.player then
-        player_death(e, cause)
-    elseif e.base.shade then
-        entity_die(get_player())
+    if e.base.ondeath then
+        if e.base.ondeath(e, cause) then
+            return
+        end
     end
+    
     if cause == "explode" or cause == "crush" then
         State.explosions[e.tidx] = true
         enqueue_sfx(e.base.player and "snd_explosion" or "snd_enemy_explosion")
@@ -622,11 +643,6 @@ end
 
 function entity_fall(e)
     if not e then return end
-    if e.base.onpit then
-        if e.base.onpit(e) then
-            return
-        end
-    end
     
     -- standard fall & die
     entity_die(e, "fall")
