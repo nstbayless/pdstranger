@@ -12,9 +12,9 @@ GlobalState = {
     hp = 7,
     lives = 2,
     burdens = {
-        [BURDEN_MEMORY]=1,
-        [BURDEN_WINGS]=1,
-        [BURDEN_SWORD]=1,
+        [BURDEN_MEMORY]=false,
+        [BURDEN_WINGS]=false,
+        [BURDEN_SWORD]=false,
     }
 }
 
@@ -771,6 +771,20 @@ end
 function playdate.upButtonDown()
     queuedInput = {type="dir", dx=0, dy=-1}
     queuedInputFrames = 0
+end
+
+--- MAIN ---
+
+for i, arg in ipairs(playdate.argv) do
+    if arg == "memory" then
+        GlobalState.burdens[BURDEN_MEMORY] = true
+    end
+    if arg == "wings" then
+        GlobalState.burdens[BURDEN_WINGS] = true
+    end
+    if arg == "sword" then
+        GlobalState.burdens[BURDEN_SWORD] = true
+    end
 end
 
 reset_game()

@@ -187,7 +187,7 @@ function ENTS.player.draw(e)
     
     if e.fly then
         e.fly = false
-        if e.state == "s" then
+        if (e.visible_state or e.state) == "s" then
             draw_wings(px, py, e)
             draw_entity(e)
         else

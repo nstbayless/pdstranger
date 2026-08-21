@@ -320,8 +320,8 @@ ENTS = {
             flynr = {-10*TSTRIDE - 16, -10*TSTRIDE - 17, superfast=true, offx=GW/2},
             flysl = {10*TSTRIDE + 16, 10*TSTRIDE + 17, superfast=true, offy=-4, offx=-GW/2},
             flysr = {-10*TSTRIDE - 16, -10*TSTRIDE - 17, superfast=true, offy=-4, offx=GW/2},
-            flye = {10*TSTRIDE + 16, 10*TSTRIDE + 18, superfast=true, offx=-GW + 4},
-            flyw = {-10*TSTRIDE - 16, -10*TSTRIDE - 18, superfast=true, offx=GW - 4},
+            flye = {10*TSTRIDE + 16, 10*TSTRIDE + 18, superfast=true, offx=-GW + 7},
+            flyw = {-10*TSTRIDE - 16, -10*TSTRIDE - 18, superfast=true, offx=GW - 7},
             
             pushe = 3*TSTRIDE + 12,
             pushw = 3*TSTRIDE + 13,
