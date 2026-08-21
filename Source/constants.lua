@@ -390,7 +390,10 @@ ENTS = {
         },
         enemy=true,
         swordable=true,
-        anim={e={TSTRIDE*5 + 6, TSTRIDE*5 + 7}, w={-TSTRIDE*5 - 6, -TSTRIDE*5 - 7}},
+        anim={
+            e={TSTRIDE*5 + 6, TSTRIDE*5 + 7}, w={-TSTRIDE*5 - 6, -TSTRIDE*5 - 7},
+            fall = {11*TSTRIDE + 8, 11*TSTRIDE + 9, unpack(FALLING_OBJECT_ANIM)},
+        },
     },
     
     beaver = {
@@ -413,6 +416,7 @@ ENTS = {
         anim={
             idle={TSTRIDE*6 + 0, TSTRIDE*6 + 1},
             active={TSTRIDE*6 + 2, TSTRIDE*6 + 3, TSTRIDE*6 + 4, TSTRIDE*6 + 5, fast=true},
+            fall = {11*TSTRIDE + 10, 11*TSTRIDE + 11, unpack(FALLING_OBJECT_ANIM)},
         },
     },
     
@@ -437,6 +441,7 @@ ENTS = {
             pushn=TSTRIDE*7+7,
             pushe=TSTRIDE*7+8,
             pushw=-TSTRIDE*7-8,
+            fall={TSTRIDE*7 + 9, TSTRIDE*7 + 10, unpack(FALLING_OBJECT_ANIM)},
         }
     },
     
@@ -454,6 +459,7 @@ ENTS = {
             pushn=TSTRIDE*8+7,
             pushe=TSTRIDE*8+8,
             pushw=-TSTRIDE*8-8,
+            fall={TSTRIDE*8 + 9, TSTRIDE*8 + 10, unpack(FALLING_OBJECT_ANIM)},
         }
     },
     
@@ -471,6 +477,7 @@ ENTS = {
             pushn=TSTRIDE*9+7,
             pushe=TSTRIDE*9+8,
             pushw=-TSTRIDE*9-8,
+            fall={TSTRIDE*9 + 9, TSTRIDE*9 + 10, unpack(FALLING_OBJECT_ANIM)},
         }
     },
     
@@ -488,6 +495,7 @@ ENTS = {
             pushn=TSTRIDE*10+7,
             pushe=TSTRIDE*10+8,
             pushw=-TSTRIDE*10-8,
+            fall={TSTRIDE*10 + 9, TSTRIDE*10 + 10, unpack(FALLING_OBJECT_ANIM)},
         }
     },
 }
