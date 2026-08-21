@@ -5,6 +5,7 @@ import "tiles"
 import "brane"
 import "parse"
 import "dialogue"
+import "sfx"
 
 GlobalState = {
     void = false,
@@ -37,6 +38,9 @@ playdate.display.setRefreshRate(FPS)
 queuedInput = nil
 queuedInputFrames = 0
 actionQueue = {}
+
+-- set: sound effects
+sfxQueue = {}
 
 local fade_pattern = nil
 
@@ -91,6 +95,7 @@ function player_death(e, cause)
     if not GlobalState.void and nloc >= 1 then
         GlobalState.lives = nloc
         table.insert(State.icons, {tile=TILE_HUD_LOCUST, x=x, y=y})
+        enqueue_sfx("snd_resurrect")
         pushAction({type="lifeloss", speed=1.0/1.5, t=0})
         deathFade.lifeloss = true
     end
@@ -258,6 +263,7 @@ function processAction()
             -- entities pushing
             for tidx, e in pairs(State.entity_animating) do
                 if e.pushing then
+                    e.pushing = false
                     if not e.frame_animation then
                         e.frame_animation = 0
                     end
@@ -312,6 +318,7 @@ function processAction()
                     
                     player.rod_animation_timer = 0.42
                     
+                    enqueue_sfx("snd_voidrod_store")
                     entity_rod_usage(player)
                 elseif not State.rod_storage and TILES[tstring].roddable then
                     -- use rod (pick up tile)
@@ -321,6 +328,7 @@ function processAction()
                     
                     State.entity_moves_pending = true
                     player.rod_animation_timer = 0.35
+                    enqueue_sfx("snd_voidrod_place")
                     
                     entity_rod_usage(player)
                 else
@@ -388,6 +396,8 @@ function processAction()
                 tbase.trigger(tidx)
             end
         end
+    elseif action.type == "levzap-pre" then
+        enqueue_sfx("snd_judgment")
     elseif action.type == "levzap-bolt" then
         for i, e in ipairs(State.entity_killing_player) do
             e.visible_state = nil
@@ -395,9 +405,9 @@ function processAction()
         end
         local player = get_player()
         if player then
-            entity_die(player)
+            entity_die(player, "levzap")
             State.entity_moves_pending = false
-            State.explosions[player.tidx] = true
+            pushAction{type="wait", t=0, speed=1/0.4}
         end
         State.levzap = false
     elseif action.type == "secondary" then
@@ -418,10 +428,13 @@ function processAction()
         
         if #State.entity_killing_player > 0 then
             local player = get_player()
+            local killstyle = nil
+            for _, e in ipairs(State.entity_killing_player) do
+                killstyle = killstyle or e.base.killstyle
+            end
             if player then
-                entity_die(player)
+                entity_die(player, killstyle or "attacked")
                 State.entity_moves_pending = false
-                State.explosions[player.tidx] = true
             end
         end
         
@@ -633,6 +646,18 @@ function draw_fallers()
     end
 end
 
+function enqueue_sfx(name)
+    sfxQueue[name] = true
+end
+
+function play_queued_sfx()
+    if table.empty(sfxQueue) then return end
+    for key, v in pairs(sfxQueue) do
+        play_sfx(key)
+    end
+    sfxQueue = {}
+end
+
 function playdate.update()
     -- update
     if in_dialogue() then
@@ -650,6 +675,8 @@ function playdate.update()
             end
         end
     end
+    
+    play_queued_sfx()
     
     -- draw
     playdate.graphics.setColor(State.atone and playdate.graphics.kColorWhite or playdate.graphics.kColorBlack)

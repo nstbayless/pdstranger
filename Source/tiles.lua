@@ -10,6 +10,14 @@ function TILES.ice.get_animkey(x, y, tstate)
     return "on"
 end
 
+function TILES.button.entity_enter(tidx, e, dx, dy)
+    if get_stairs_locked() then
+        enqueue_sfx("snd_activate")
+    else
+        enqueue_sfx("snd_reveal")
+    end
+end
+
 function TILES.shadeglyph.entity_exit(tidx, e, dx, dy)
     if not e.base.spawnshade then
         return
@@ -40,18 +48,30 @@ function TILES.shadeglyph.entity_exit(tidx, e, dx, dy)
     }, tidx)
 end
 
+function TILES.ice.entity_enter(tidx, e)
+    if State.tiles_state[tidx] ~= "on" then
+        enqueue_sfx("snd_stepglassfloor")
+    end
+    State.tiles_state[tidx] = "on"
+end
+
 function TILES.ice.entity_exit(tidx, e)
     State.tiles[tidx] = "void"
     State.explosions[tidx] = true
+    -- TODO: right sfx for this
+    enqueue_sfx("snd_curtain_open")
 end
 
 function TILES.trap.entity_enter(tidx, e)
     State.tiles[tidx] = "explo"
+    enqueue_sfx("snd_activate")
 end
 
 function TILES.explo.pretrigger(tidx)
     -- propagate
     State.tiles_triggered[tidx] = true
+    enqueue_sfx("snd_vanish")
+    
     local x,y = tcoord_of(tidx)
     for i, dir in ipairs(ADJACENT_DIRS) do
         local dx, dy = dir.dx, dir.dy
@@ -87,6 +107,8 @@ end
 
 function TILES.death.entity_enter(tidx, e)
     State.tiles_triggered[tidx] = true
+    -- FIXME: what's the right sfx?
+    enqueue_sfx("snd_vanish")
 end
 
 function TILES.stair.rodbox()

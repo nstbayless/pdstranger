@@ -128,6 +128,14 @@ function table.ihas(t, value)
     return false
 end
 
+function table.size(t)
+    local n = 0
+    for k, v in pairs(t) do
+        n += 1
+    end
+    return n
+end
+
 function table.copy(original)
   if type(original) ~= "table" then
     return original

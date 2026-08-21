@@ -243,6 +243,7 @@ ENTS = {
         sym = "M",
         push = true,
         statue = true,
+        killstyle = "gold",
         anim = TSTRIDE*4 + 3,
     },
     
@@ -399,6 +400,10 @@ ENTS = {
             n={TSTRIDE*7 + 2, TSTRIDE*7 + 3},
             e={TSTRIDE*7 + 4, TSTRIDE*7 + 5},
             w={-TSTRIDE*7 - 4, -TSTRIDE*7 - 5},
+            pushs=TSTRIDE*7+6,
+            pushn=TSTRIDE*7+7,
+            pushe=TSTRIDE*7+8,
+            pushw=-TSTRIDE*7-8,
         }
     },
     
@@ -412,6 +417,10 @@ ENTS = {
             n={TSTRIDE*8 + 2, TSTRIDE*8 + 3},
             e={TSTRIDE*8 + 4, TSTRIDE*8 + 5},
             w={-TSTRIDE*8 - 4, -TSTRIDE*8 - 5},
+            pushs=TSTRIDE*8+6,
+            pushn=TSTRIDE*8+7,
+            pushe=TSTRIDE*8+8,
+            pushw=-TSTRIDE*8-8,
         }
     },
     
@@ -425,6 +434,10 @@ ENTS = {
             n={TSTRIDE*9 + 2, TSTRIDE*9 + 3},
             e={TSTRIDE*9 + 4, TSTRIDE*9 + 5},
             w={-TSTRIDE*9 - 4, -TSTRIDE*9 - 5},
+            pushs=TSTRIDE*9+6,
+            pushn=TSTRIDE*9+7,
+            pushe=TSTRIDE*9+8,
+            pushw=-TSTRIDE*9-8,
         }
     },
     
@@ -438,6 +451,10 @@ ENTS = {
             n={TSTRIDE*10 + 8, TSTRIDE*10 + 9},
             e={TSTRIDE*10 + 10, TSTRIDE*10 + 11},
             w={-TSTRIDE*10 - 10, -TSTRIDE*10 - 11},
+            pushs=TSTRIDE*10+6,
+            pushn=TSTRIDE*10+7,
+            pushe=TSTRIDE*10+8,
+            pushw=-TSTRIDE*10-8,
         }
     },
 }
@@ -504,7 +521,7 @@ SECONDARY_ANIMATIONS_TIME = 0.6
 
 KILLPLAYER_TIME = 0.7
 EXPLODE_TIME = 0.2
-PUSH_TIME = 0.2
+PUSH_TIME = 0.25
 
 VOIDFADE_TIME = 0.9
 LIVEFADE_TIME = 0.4
@@ -520,3 +537,5 @@ COLOR_CHECKERBOARD = { 0xaa, 0x55, 0xaa, 0x55, 0xaa, 0x55, 0xaa, 0x55 }
 ADJACENT_DIRS = {{dx=-1, dy=0}, {dx=1, dy=0}, {dy=-1, dx=0}, {dy=1, dx=0}}
 
 FALL_ANIM_RATE = 10
+
+MAX_SFX_CACHED = 32

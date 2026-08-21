@@ -28,6 +28,7 @@ function ENTS.stgor.onpush(e)
     e.state = "on"
     e.flashing = true
     e.visible_state_t = SECONDARY_ANIMATIONS_TIME
+    enqueue_sfx("snd_activate")
 end
 
 function ENTS.stmon.update(e)
@@ -52,6 +53,8 @@ function ENTS.stmon.update(e)
         end
         
         table.insert(State.entity_killing_player, e)
+        enqueue_sfx("snd_activate")
+        enqueue_sfx("snd_laser")
     end
 end
 
@@ -70,11 +73,11 @@ function ENTS.sttan.update(e)
     e.flashing = true
     e.animation_time = 0.7
     table.insert(State.entity_animating, e)
+    enqueue_sfx("snd_activate")
 end
 
 function ENTS.sttan.on_animation_complete(e)
-    State.explosions[e.tidx] = true
-    entity_die(e)
+    entity_die(e, "explode")
 end
 
 function ENTS.stlev.init(e)
@@ -206,12 +209,9 @@ function ENTS.leech.update(e)
     
     local blocker, e2 = get_entity_move_blocker(
         e, dx, dy,
-        MOVE_FLAG_NO_PITS | MOVE_FLAG_NO_PUSH | MOVE_FLAG_IGNORE_SHADES
+        MOVE_FLAG_NO_PITS | MOVE_FLAG_NO_PUSH | MOVE_FLAG_IGNORE_SHADES | MOVE_FLAG_IGNORE_PLAYER
     )
-    if blocker == "pdie" then
-        add_entity_killing_player(e)
-        add_entity_killing_player(e2)
-    elseif blocker ~= nil then
+    if blocker ~= nil then
         -- turn around
         e.state = dir_to_cardinal(-dx, -dy)
     else
@@ -231,32 +231,14 @@ function ENTS.smiler.update(e)
     
     local player_x, player_y = tcoord_of(player.tidx)
     
-    local dx = 0
-    local dy = 0
+    local los, dx, dy = has_line_of_sight(x, y, player_x, player_y)
     
-    if player_y == y and player_x < x then
-        dx = -1
-    elseif player_y == y and player_x > x then
-        dx = 1
-    elseif player_x == x and player_y < y then
-        dy = -1
-    elseif player_x == x and player_y > y then
-        dy = 1
-    end
-    
-    if dx ~= 0 or dy ~= 0 then
+    if los then
         local blocker = get_entity_move_blocker(
             e, dx, dy,
-            MOVE_FLAG_NO_PUSH
+            MOVE_FLAG_NO_PUSH | MOVE_FLAG_IGNORE_PLAYER
         )
-        if blocker == "pdie" then
-            add_entity_killing_player(e)
-            if dx < 0 then
-                e.state = "w"
-            elseif dx > 0 then
-                e.state = "e"
-            end
-        elseif blocker == nil then
+        if blocker == nil then
             if dx < 0 then
                 e.state = "w"
             elseif dx > 0 then
@@ -310,12 +292,9 @@ function ENTS.beaver.update(e)
         
         local blocker, e2 = get_entity_move_blocker(
             e, dx, dy,
-            MOVE_FLAG_NO_PUSH | MOVE_FLAG_NO_PITS
+            MOVE_FLAG_NO_PUSH | MOVE_FLAG_NO_PITS | MOVE_FLAG_IGNORE_SHADES | MOVE_FLAG_IGNORE_PLAYER
         )
-        if blocker == "pdie" then
-            add_entity_killing_player(e)
-            add_entity_killing_player(e2)
-        elseif blocker then
+        if blocker then
             e.state = "idle"
         else
             entity_prepare_move(e, dx, dy)
@@ -336,6 +315,8 @@ function ENTS.chest.interact(e, ei, dx, dy)
         if e.state == "on" then
             e.state = "off"
             local nloc = e.count or 1
+            
+            enqueue_sfx("snd_activate")
             
             if nloc <= 0 then
                 push_dialogue("Empty.", entity_dialogue_side(get_player()))
@@ -613,8 +594,18 @@ function entity_die(e, cause)
     elseif e.base.shade then
         entity_die(get_player())
     end
-    if cause == "explode" then
+    if cause == "explode" or cause == "crush" then
         State.explosions[e.tidx] = true
+        enqueue_sfx(e.base.player and "snd_explosion" or "snd_enemy_explosion")
+    end
+    
+    if cause == "gold" then
+        enqueue_sfx("snd_golden")
+        -- e.flashing = false
+        e.visible_state = nil
+        e.visible_state_t = 0
+        e.frame_animation_speed = 0
+        return
     end
     
     if cause == "fall" then
@@ -623,6 +614,7 @@ function entity_die(e, cause)
             anim = e.base.anim.fall
         end
         table.insert(State.fallers, {anim=anim, tidx=e.tidx, frame=0})
+        enqueue_sfx(e.base.player and "snd_player_fall" or "snd_fall")
     end
     
     State.ents[e.tidx] = nil
@@ -666,14 +658,13 @@ function entity_execute_move(e)
         local movers = State.entity_moving_to[dstidx]
         assert(movers, "never set entity_moving_to before move!")
         if movers and #movers >= 2 then
-            entity_die(e)
+            entity_die(e, "explode")
             State.explosions[dstidx] = true
         else
             if q.crush then
                 local crushee = ent_at(dstidx)
                 if crushee and crushee ~= e then
-                    entity_die(crushee)
-                    State.explosions[dstidx] = true
+                    entity_die(crushee, "crush")
                 end
             end
 
@@ -707,6 +698,11 @@ function entity_execute_move(e)
     elseif q.blocked == "pdie" then
         add_entity_killing_player(e)
         add_entity_killing_player(q.e)
+        enqueue_sfx("snd_player_damage")
+    elseif q.blocked == "stopped" then
+        enqueue_sfx("snd_push_small")
+        table.insert(State.entity_animating, e)
+        e.pushing = true
     elseif q.blocked == "push" then
         -- perform push
         table.insert(State.entity_animating, e)
@@ -717,6 +713,7 @@ function entity_execute_move(e)
             pushed=true,
             dx=q.dx, dy=q.dy
         }
+        enqueue_sfx("snd_push")
     end
     
     e.queued_move = nil
@@ -837,6 +834,8 @@ function lev_zap(e)
         end
     end
     
+    enqueue_sfx("snd_activate")
+    
     pushAction({type="levzap-bolt", t=0, speed=1.0/LEVZAP_BOLT_TIME})
     pushAction({type="levzap-pre", t=0, speed=1.0/LEVZAP_PRE_TIME})
 end
@@ -849,8 +848,8 @@ function entity_rod_usage(er)
         for y=0,H-1 do
             local e = ent_at(x, y)
             if e and e.base.lev then
-                print("lev:", tidx)
                 if e.state == "off" then
+                    enqueue_sfx("snd_activate")
                     if any_lev then
                         all_lev = false
                     else

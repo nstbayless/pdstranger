@@ -177,11 +177,12 @@ function exit_by_stairs()
         en.visible_state_t = 0.5
         State.atone=true
         pushAction({type="atone", speed=1.0/6.0, t=0})
+        enqueue_sfx("snd_activate")
     else
         -- exit animation
         player.frame_animation = 0
         player.frame_animation_speed = 7
-        
+        enqueue_sfx("snd_stairs")
         pushAction({type="fadeout", speed=1.0/1.2, t=0, iris={x=player_x, y=player_y}, nextbrane=get_stairs_brane()})
     end
 end
