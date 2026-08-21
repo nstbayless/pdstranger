@@ -362,6 +362,10 @@ function gainLife(n)
 end
 
 function get_stairs_locked()
+    if State.rod_storage and State.rod_storage.tstring == "button" then
+        return true
+    end
+    
     for i=1,TIDX_MAX do
         if tile_at(i) == "button" then
             if not ent_at(i) then
