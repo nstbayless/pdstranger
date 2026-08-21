@@ -35,15 +35,14 @@ State = {
     -- set of tidx->true e.g. explo
     tiles_triggered={},
     
-    frames_per_anim_tick = 13,
-    
     -- set: tidx
     empty_chests={},
     
     -- ticks at FPS
     frame = 0,
     
-    -- ticks at FPS / frames_per_anim_tick
+    -- ticks with music
+    -- each integer represents a beat
     frame_animation = 0,
     
     -- standard actions per second
@@ -65,7 +64,7 @@ CLEAN_STATE = table.deepcopy(State)
 
 function tick_frame()
     State.frame += 1
-    State.frame_animation += 1.0/State.frames_per_anim_tick
+    State.frame_animation = music_get_beat()
 end
 
 function pcoord_of(x, y)

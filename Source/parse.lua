@@ -5,6 +5,10 @@ local function parse_command(argv)
     if #argv == 0 then return end
     if argv[1] == "nextbrane" then
         State.nextbrane = argv[2]
+    elseif argv[1] == "egg" then    
+        -- TODO -- egg message (requires quote parsing)
+    elseif argv[1] == "mus" then
+        State.music = argv[2]
     elseif argv[1] == "ent" then
         local e = {}
         -- flags
@@ -40,6 +44,7 @@ function load_brane(path, retry)
     State.tiles = {}
     State.ents = {}
     State.path = path
+    State.music = {}
     State.brane_number = nil
     
     if not retry then
@@ -113,5 +118,6 @@ function load_brane(path, retry)
     end
     
     load_hud()
+    music_play(State.music)
     return true
 end

@@ -6,6 +6,7 @@ import "brane"
 import "parse"
 import "dialogue"
 import "sfx"
+import "music"
 
 GlobalState = {
     void = false,
@@ -742,7 +743,9 @@ function playdate.update()
         end
     end
     
+    -- audio
     play_queued_sfx()
+    music_update()
     
     -- draw
     playdate.graphics.setColor(State.atone and playdate.graphics.kColorWhite or playdate.graphics.kColorBlack)
@@ -802,9 +805,3 @@ end
 
 reset_game()
 GlobalState.hasrod = (not State.brane_number) or State.brane_number >= 3
-
--- music
-fp = playdate.sound.fileplayer.new("music/voidsymphony")
-fp:setVolume(0.5)
-fp:setLoopRange(2*60 + 7.2, 5*60 + 9.45)
-fp:play(0)

@@ -1,8 +1,5 @@
 - tile animations (ice, stairs, button, etc.)
 - falling into pit animation
 - if an entity dies while on ice, the ice breaks
-- sword burden flashes when usable
-- synchronize music
 - crush faller under tile
 - ice that starts under an enemy should start out pre-broken
-- music looping

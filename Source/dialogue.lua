@@ -79,6 +79,15 @@ function tick_dialogue()
     local d = in_dialogue()
     if not d then return end
     
+    if type(d.msg) == "table" then
+        local setmusic = d.msg.setmusic
+        if setmusic then
+            music_play(setmusic, d.msg.fadetime)
+        end
+        table.remove(dialogueQueue, 1)
+        return
+    end
+    
     dialogue_word_wrap(d, (W-2)*2 + 1)
     if #d.lines > 0 then
         assert(type(d.lines[1]) == "string")

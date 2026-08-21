@@ -384,6 +384,7 @@ local superchest_messages = {
         "[You acquired a strange rod]",
         "[Simply holding it makes you feel uneasy]",
         "[Something is wrong]",
+        {setmusic="concern"},
     },
     memory = {
         "[You acquired a strange feeling]",
@@ -612,7 +613,7 @@ function draw_entities()
                     if e.frame_animation_speed then
                         e.frame_animation += e.frame_animation_speed / FPS
                     else 
-                        e.frame += 1.0/state.frames_per_anim_tick
+                        e.frame += music_get_beats_per_frame()
                     end
                 end
             end
@@ -806,6 +807,12 @@ end
 
 function entity_fall(e, skippanic)
     if not e then return end
+    
+    if not e.fly and entity_canfly(e) then
+        e.fly = true
+        enqueue_sfx("snd_wingspawn")
+        return
+    end
     
     e.fly = false
     if e.base.player and not skippanic then

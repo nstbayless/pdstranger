@@ -347,9 +347,14 @@ ENTS = {
     },
     
     egg = {
-        sym = "o",
+        sym = {
+            o="idle",
+        },
         push=true,
-        anim=TSTRIDE*4 + 10,
+        anim={
+            idle={TSTRIDE*4 + 10},
+            fall={TSTRIDE*11 + 12, TSTRIDE*11 + 13, unpack(FALLING_OBJECT_ANIM)},
+        },
         memory = "Howdy."
     },
     
