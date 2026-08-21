@@ -221,6 +221,7 @@ ENTS = {
         sym = "A",
         push = true,
         statue = true,
+        memory = "...",
         anim = TSTRIDE*4 + 0,
     },
     
@@ -228,6 +229,7 @@ ENTS = {
         sym = "E",
         push = true,
         statue = true,
+        memory = "My love...",
         anim = TSTRIDE*4 + 1,
     },
     
@@ -235,6 +237,7 @@ ENTS = {
         sym = "B",
         push = true,
         statue = true,
+        memory = "Got any locusts?",
         anim = TSTRIDE*4 + 2,
         bee = true,
     },
@@ -243,6 +246,7 @@ ENTS = {
         sym = "M",
         push = true,
         statue = true,
+        memory = "Ksi shi shi...",
         killstyle = "gold",
         anim = TSTRIDE*4 + 3,
     },
@@ -251,6 +255,7 @@ ENTS = {
         sym = "T",
         statue = true,
         push = true,
+        memory = "Make them go away...",
         anim = TSTRIDE*4 + 4,
     },
     
@@ -258,6 +263,7 @@ ENTS = {
         sym = "G",
         push = true,
         statue = true,
+        memory = "How bothersome.",
         anim = {off=TSTRIDE*4 + 5, on=TSTRIDE*4 + 6},
     },
     
@@ -266,6 +272,7 @@ ENTS = {
         push = true,
         statue = true,
         lev = true,
+        memory = "One wrong move and I'll destroy you...",
         anim = {
             off=TSTRIDE*4 + 7, on=TSTRIDE*4 + 8,
             activate = {TSTRIDE*4 + 7, TSTRIDE*4 + 8}
@@ -277,6 +284,7 @@ ENTS = {
         push = true,
         statue = true,
         cif = true,
+        memory = "...",
         anim = TSTRIDE*4 + 9,
     },
     
@@ -293,10 +301,17 @@ ENTS = {
             urw = 3*TSTRIDE + 9,
             urs = 3*TSTRIDE + 10,
             urn = 3*TSTRIDE + 11,
-            rode = 1*TSTRIDE + 16,
-            rodw = 1*TSTRIDE + 17,
-            rods = 1*TSTRIDE + 18,
-            rodn = 1*TSTRIDE + 19,
+            
+            rode = 8*TSTRIDE + 16,
+            rodw = 8*TSTRIDE + 17,
+            rods = 8*TSTRIDE + 18,
+            rodn = 8*TSTRIDE + 19,
+            
+            swde = 9*TSTRIDE + 16,
+            swdw = 9*TSTRIDE + 17,
+            swds = 9*TSTRIDE + 18,
+            swdn = 9*TSTRIDE + 19,
+            
             pushe = 3*TSTRIDE + 12,
             pushw = 3*TSTRIDE + 13,
             pushs = 3*TSTRIDE + 14,
@@ -324,6 +339,7 @@ ENTS = {
         sym = "o",
         push=true,
         anim=TSTRIDE*4 + 10,
+        memory = "Howdy."
     },
     
     chest = {
@@ -341,6 +357,7 @@ ENTS = {
             e="e",
             w="w",
         },
+        swordable = true,
         enemy=true,
         anim={e={TSTRIDE*5 + 0, TSTRIDE*5 + 1}, w={-TSTRIDE*5 + 0, -TSTRIDE*5 - 1}},
     },
@@ -350,6 +367,7 @@ ENTS = {
             n="n",
             s="s",
         },
+        swordable=true,
         enemy=true,
         anim={s={TSTRIDE*5 + 2, TSTRIDE*5 + 3}, n={TSTRIDE*5 + 4, TSTRIDE*5 + 5}},
     },
@@ -360,12 +378,14 @@ ENTS = {
             p="e",
         },
         enemy=true,
+        swordable=true,
         anim={e={TSTRIDE*5 + 6, TSTRIDE*5 + 7}, w={-TSTRIDE*5 - 6, -TSTRIDE*5 - 7}},
     },
     
     beaver = {
         sym = "b",
         enemy=true,
+        swordable=true,
         anim={
             idle={TSTRIDE*5 + 8, TSTRIDE*5 + 9},
             s={TSTRIDE*5 + 10, TSTRIDE*5 + 11},
@@ -378,6 +398,7 @@ ENTS = {
     octahedron = {
         sym = "h",
         enemy=true,
+        swordable=true,
         anim={
             idle={TSTRIDE*6 + 0, TSTRIDE*6 + 1},
             active={TSTRIDE*6 + 2, TSTRIDE*6 + 3, TSTRIDE*6 + 4, TSTRIDE*6 + 5, fast=true},
@@ -387,6 +408,7 @@ ENTS = {
     eye = {
         sym = "i",
         enemy=true,
+        swordable=true,
         anim={TSTRIDE*6 + 6, TSTRIDE*6 + 7},
     },
     
@@ -461,9 +483,9 @@ ENTS = {
 
 ANIM_ZAP = {
     n={TSTRIDE*7 + 12, TSTRIDE*7 + 13, superfast=true},
-    e={TSTRIDE*7 + 13, TSTRIDE*7 + 14, superfast=true},
+    e={TSTRIDE*7 + 14, TSTRIDE*7 + 15, superfast=true},
     s={-TSTRIDE*7 - 12, -TSTRIDE*7 - 13, superfast=true},
-    w={-TSTRIDE*7 - 13, -TSTRIDE*7 - 14, superfast=true},
+    w={-TSTRIDE*7 - 14, -TSTRIDE*7 - 15, superfast=true},
 }
 
 OBJLOOKUP = {
@@ -539,3 +561,7 @@ ADJACENT_DIRS = {{dx=-1, dy=0}, {dx=1, dy=0}, {dy=-1, dx=0}, {dy=1, dx=0}}
 FALL_ANIM_RATE = 10
 
 MAX_SFX_CACHED = 32
+
+BURDEN_MEMORY = 1
+BURDEN_WINGS = 2
+BURDEN_SWORD = 3

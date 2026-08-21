@@ -184,7 +184,7 @@ function ENTS.player.draw(e)
         end
         
         local anim_ur = e.base.anim["ur" .. e.state]
-        local anim_rod = e.base.anim["rod" .. e.state]
+        local anim_rod = e.base.anim[(e.rodbasekey or "rod") .. e.state]
         local dx, dy = cardinal_to_dir(e.state)
         draw_anim(px, py, anim_ur, e.frame_animation)
         draw_anim(px + dx * GW, py + dy * GH, anim_rod, e.frame_animation)
@@ -566,6 +566,15 @@ end
 function entity_interact(e, ei, dx, dy)
     if e.base.interact then
         return e.base.interact(e, ei, dx, dy)
+    elseif e.base.memory and GlobalState.burdens[BURDEN_MEMORY] then
+        push_dialogue(e.base.memory, entity_dialogue_side(e))
+        return true
+    elseif e.base.swordable and GlobalState.burdens[BURDEN_SWORD] then
+        print(e.base.swordable)
+        entity_die(e, "explode")
+        ei.rodbasekey = "swd"
+        ei.rod_animation_timer = 0.4
+        return 2
     end
     return false
 end

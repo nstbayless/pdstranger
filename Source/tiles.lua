@@ -154,6 +154,11 @@ function TILES.hud.onrod(tidx, tstate, action)
                 entity_die(get_player())
             end
         end
+    elseif string.sub(tstate, 1, 2) == "_i" then
+        local burden_idx = string_to_number(tstate.sub(tstate, 3, 3))
+        if burden_idx then
+            GlobalState.burdens[burden_idx] = action == "place"
+        end
     elseif tstate == "_brane" and action == "store" then
         -- TODO -- br nil?
         reset_game()
@@ -172,6 +177,12 @@ function TILES.hud.draw(x, y, tstate)
         -- TODO
     elseif tstate == "_locust" then
         draw_gfx(px, py, TILE_HUD_LOCUST)
+    elseif tstate == "_i1" then
+        draw_gfx(px, py, TILE_HUD_BDN_MEMORY)
+    elseif tstate == "_i2" then
+        draw_gfx(px, py, TILE_HUD_BDN_WINGS)
+    elseif tstate == "_i3" then
+        draw_gfx(px, py, TILE_HUD_BDN_SWORD)
     elseif tstate == "_brane" then
         if State.brane_number then
             draw_string(px, py, string.format("B%0d", math.floor(State.brane_number/100)%10))

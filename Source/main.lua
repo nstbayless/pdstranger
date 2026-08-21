@@ -11,6 +11,11 @@ GlobalState = {
     void = false,
     hp = 7,
     lives = 2,
+    burdens = {
+        [BURDEN_MEMORY]=1,
+        [BURDEN_WINGS]=1,
+        [BURDEN_SWORD]=1,
+    }
 }
 
 GFX = playdate.graphics.imagetable.new("tiles")
@@ -340,6 +345,7 @@ function processAction()
                     State.entity_moves_pending = true
                     
                     player.rod_animation_timer = 0.42
+                    player.rodbasekey = "rod"
                     
                     if TILES[State.tiles[dstidx]].onrod then
                         TILES[State.tiles[dstidx]].onrod(dstidx, State.tiles_state[dstidx], "place")
@@ -355,6 +361,7 @@ function processAction()
                     
                     State.entity_moves_pending = true
                     player.rod_animation_timer = 0.35
+                    player.rodbasekey = "rod"
                     enqueue_sfx("snd_voidrod_place")
                     
                     if TILES[tstring].onrod then
