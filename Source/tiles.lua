@@ -162,6 +162,12 @@ function TILES.hud.onrod(tidx, tstate, action)
     elseif tstate == "_brane" and action == "store" then
         -- TODO -- br nil?
         reset_game()
+    elseif tstate == "_infty" and action == "store" then
+        -- TODO -- crash?
+        reset_game()
+    elseif tstate == "_rod" and action == "store" then
+        -- TODO -- crash?
+        reset_game()
     end
 end
 

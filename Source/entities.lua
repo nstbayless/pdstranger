@@ -222,6 +222,13 @@ function ENTS.octahedron.update(e, dx, dy)
     local path = nil
     if player then
         local dst_x, dst_y = tcoord_of(player.tidx)
+        
+        if math.abs(dst_x - x) + math.abs(dst_y - y) == 1 then
+            entity_prepare_move(e, dst_x - x, dst_y - y)
+            e.state = "active"
+            return
+        end
+        
         path = pathfind(x, y, dst_x, dst_y, e.bias)
         
         if not path then
