@@ -420,6 +420,7 @@ function processAction()
         end
         if GlobalState.hp == 0 then
             GlobalState.hp = 7
+            load_hud()
         end
         local iris=nil
         if action.nextbrane then

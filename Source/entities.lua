@@ -622,7 +622,6 @@ function draw_entities()
 end
 
 function can_push(e, dx, dy)
-    -- a pushed entity crushes whatever it lands on, so entities don't block it
     local result = get_entity_move_blocker(
         e, dx, dy,
         MOVE_FLAG_NO_PUSH | MOVE_FLAG_NO_PUSHBLOCKER
@@ -847,13 +846,18 @@ function entity_execute_move(e)
     if q.move then
         local dstx, dsty = x + q.dx, y + q.dy
         local dstidx = tidx_of(dstx, dsty)
+        assert(dstidx, "queued move with invalid dst tile")
         local movers = State.entity_moving_to[dstidx]
         assert(movers, "never set entity_moving_to before move!")
         if movers and #movers >= 2 then
-            entity_die(e, "explode")
+            entity_die(e, "coincide")
             State.explosions[dstidx] = true
+            -- kill whatever is there, too
+            entity_die(ent_at(dstidx), "coincide")
+            enqueue_sfx("snd_enemy_explosion")
         else
-            if q.crush then
+            if q.pushed then
+                enqueue_sfx("snd_push")
                 local crushee = ent_at(dstidx)
                 if crushee and crushee ~= e then
                     entity_die(crushee, "crush")
@@ -915,16 +919,25 @@ function entity_execute_move(e)
         -- perform push
         table.insert(State.entity_animating, e)
         e.pushing = true
-        q.e.late_queued_move = {
-            move=true,
-            crush=true,
-            pushed=true,
-            dx=q.dx, dy=q.dy
-        }
+        
+        if q.e.late_queued_move and q.e.late_queued_move.pushed then
+            -- already pushed by something else.
+            -- cancel the push.
+            q.e.late_queued_move.move = false
+            q.e.late_queued_move.dx = 0
+            q.e.late_queued_move.dy = 0
+            enqueue_sfx("snd_push_small")
+        else
+            -- true push
+            q.e.late_queued_move = {
+                move=true,
+                pushed=true,
+                dx=q.dx, dy=q.dy
+            }
+        end
         if e.fly then
             entity_fall(e)
         end
-        enqueue_sfx("snd_push")
     end
     
     e.queued_move = nil
