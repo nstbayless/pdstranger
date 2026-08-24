@@ -54,7 +54,7 @@ end
 function music_play(musname, fadetime)
     print(musname)
     musname = musname or DEFAULT_MUSIC
-    fadetime = fadetime or 2
+    fadetime = fadetime or 4.2
     
     local musdef = MUS[musname]
     musdef = musdef or MUS[DEFAULT_MUSIC]

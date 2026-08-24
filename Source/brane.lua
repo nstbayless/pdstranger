@@ -51,10 +51,12 @@ State = {
     -- increments once at start of player action
     round = 0,
     
+    eggmessage = {},
     brane_number = 1,
     memento = false,
     levzap = false,
     atone = false,
+    voidcondition = nil,
     
     -- path to brane file
     path = nil,

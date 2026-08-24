@@ -5,8 +5,10 @@ local function parse_command(argv)
     if #argv == 0 then return end
     if argv[1] == "nextbrane" then
         State.nextbrane = argv[2]
+    elseif argv[1] == "voidcondition" then
+        State.voidcondition = argv[2]
     elseif argv[1] == "egg" then    
-        -- TODO -- egg message (requires quote parsing)
+        table.insert(State.eggmessage, argv[2])
     elseif argv[1] == "mus" then
         State.music = argv[2]
     elseif argv[1] == "ent" then
@@ -113,7 +115,7 @@ function load_brane(path, retry)
     -- additional info
     for _, line in ipairs(lines) do
         if string.startswith(line, "%%") then
-            parse_command(string.split(string.sub(line, 3)))
+            parse_command(string.split_respect_quotes(string.sub(line, 3)))
         end
     end
     

@@ -214,6 +214,17 @@ TILES = {
         }
     },
     
+    guts = {
+        solid=true,
+        sym={
+            ["["]="e",
+        },
+        
+        anim = {
+            e=12*TSTRIDE + 0,
+        },
+    },
+    
     hud = {
         anim = TILE_B_HUD,
         roddable=true,

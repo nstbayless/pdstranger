@@ -50,6 +50,10 @@ function draw_string(px, py, s, flags)
             t = 41
         end
         
+        if c == string.byte("'") then
+            t = 42
+        end
+        
         if t >= 0 then
             FONT:drawImage(t + 1, px, py)
         end
@@ -246,6 +250,15 @@ function string.startswith(s, prefix)
     return false
 end
 
+function string.endswith(s, prefix)
+    if #s >= #prefix then
+        if string.sub(s, #s - #prefix) == prefix then
+            return true
+        end
+    end
+    return false
+end
+
 function string.split(s, pattern)
     local words = {}
 
@@ -254,6 +267,36 @@ function string.split(s, pattern)
     end
     
     return words
+end
+
+function string.split_respect_quotes(s, pattern)
+    local words = string.split(s, pattern)
+    local outwords = {}
+    
+    local inquote = false
+    for i, word in ipairs(words) do
+        if not inquote then
+            if string.startswith(word, '"') then
+                if string.endswith(word, '"') then
+                    table.insert(outwords, string.sub(word, 2, #word-1))
+                else
+                    inquote = true
+                    table.insert(outwords, string.sub(word, 2))
+                end
+            else
+                table.insert(outwords, word)
+            end
+        else
+            if string.endswith(word, '"') then
+                word = string.sub(word, 1, #word-1)
+                inquote = false
+            end
+            
+            outwords[#outwords] = outwords[#outwords] .. " " .. word
+        end
+    end
+    
+    return outwords
 end
 
 function math.round(x)

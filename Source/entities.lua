@@ -65,6 +65,37 @@ function ENTS.stgor.solid(e)
     return e.state == "on"
 end
 
+function ENTS.egg.interact(e)
+    if not GlobalState.burdens[BURDEN_MEMORY] then return false end
+    
+    if State.eggmessage then
+        for i, msg in ipairs(State.eggmessage) do
+            push_dialogue(msg, entity_dialogue_side(e))
+        end
+        
+        return true
+    end
+    
+    return false
+end
+
+import "voider"
+
+function ENTS.stadd.update(e)
+    if not State.voidcondition then return end
+    
+    if VOID_CONDITIONS[State.voidcondition](e) then
+        e.flashing = true
+        e.animation_time = 0.85
+        table.insert(State.entity_animating, e)
+        enqueue_sfx("snd_activate")
+    end
+end
+
+function ENTS.stadd.on_animation_complete(e)
+    entity_die(e, "explode")
+end
+
 function ENTS.sttan.update(e)
     -- check if any enemies (or NPCs) alive
     for tidx,e in pairs(State.ents) do
@@ -394,12 +425,12 @@ local superchest_messages = {
     sword = {
         "[You acquired a strange sword]",
         "[Its ornate design makes it rather cumbersome to use]",
-        "[Who knows, maybe it will come in handy in the long run]",
+        "[Maybe it will come in handy in the long run]",
     },
     wings = {
         "[You acquired a strange pair of wings]",
         "[They feel extremely brittle]",
-        "[Who knows, maybe they'll come in handy in the long run]",
+        "[Maybe they'll come in handy in the long run]",
     },
 }
 
@@ -428,9 +459,9 @@ function ENTS.superchest.interact(e, ei, dx, dy)
         end
         
         if e2 and e2.basekey == "superchest" then
-            e2.state = "off" .. e2.side
+            e2.state = "off" .. (e2.side or "")
         end
-        e.state = "off" .. e.side
+        e.state = "off" .. (e.side or "")
         
         local icon = nil
         
