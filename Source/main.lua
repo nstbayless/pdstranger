@@ -427,15 +427,17 @@ function processAction()
         if not load_brane(brane_path) then
             if not load_brane(WHITE_BRANE) then
                 reset_game()
+                return
             end
-            return
         end
         if action.retry_brane then
             State.empty_chests = chests
         end
         if GlobalState.hp == 0 then
             GlobalState.hp = 7
-            load_hud()
+            if not State.props.nohud then
+                load_hud()
+            end
         end
         local iris=nil
         if action.nextbrane then
