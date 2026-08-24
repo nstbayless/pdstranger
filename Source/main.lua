@@ -10,6 +10,7 @@ import "music"
 
 GlobalState = {
     void = false,
+    whiteglitch = 0,
     hp = 7,
     lives = 2,
     burdens = {
@@ -723,7 +724,8 @@ function draw_fallers()
     end
 end
 
-function draw_glitch_tiles()
+function draw_glitch_tiles(p)
+    p = p or 1
     local buff = get_offscreen_buffer()
     playdate.graphics.pushContext(buff)
     
@@ -732,7 +734,7 @@ function draw_glitch_tiles()
     playdate.graphics.popContext(buff)
     
     local t = iota(TIDX_MAX*4)
-    table.shuffle(t)
+    table.shuffle(t, p)
     
     for tdst, tsrc in ipairs(t) do
         local psx, psy = pcoord_of(math.floor(tsrc/4))
@@ -757,6 +759,27 @@ function play_queued_sfx()
         play_sfx(key)
     end
     sfxQueue = {}
+end
+
+function update_whiteglitch()
+    if State.props.glitch then
+        GlobalState.whiteglitch += 1/FPS/WHITEGLITCH_TIME
+    else
+        GlobalState.whiteglitch = 0
+        return
+    end
+    
+    local p = math.min(GlobalState.whiteglitch, 1)
+    
+    if p >= 0.5 and p < 0.97 then
+        if math.random()*(1-p) < (p-0.5)*0.2 then
+            draw_glitch_tiles(0.025*p)
+        end
+    end
+    
+    if p >= 1 then
+        crash_game()
+    end
 end
 
 function playdate.update()
@@ -802,6 +825,8 @@ function playdate.update()
     
     if State.glitch then
         draw_glitch_tiles()
+    else
+        update_whiteglitch()
     end
     
     queuedInputFrames += 1

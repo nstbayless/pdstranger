@@ -123,11 +123,15 @@ function dir_to_cardinal(dx, dy)
     end
 end
 
-function table.shuffle(t)
+function table.shuffle(t, p)
     local n = #t
     for i = n, 2, -1 do
-        local j = math.random(i)
-        t[i], t[j] = t[j], t[i]
+        if p and math.random() > p then
+            -- don't swap
+        else
+            local j = math.random(i)
+            t[i], t[j] = t[j], t[i]
+        end
     end
     return t
 end
