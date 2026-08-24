@@ -2,6 +2,8 @@
 GW = 24
 GH = 24
 
+GAME_VERSION = 100
+
 TSTRIDE = 20
 
 TILE_B_VOID = 0

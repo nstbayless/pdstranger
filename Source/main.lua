@@ -9,10 +9,12 @@ import "sfx"
 import "music"
 
 GlobalState = {
+    version = GAME_VERSION,
     void = false,
     whiteglitch = 0,
     hp = 7,
     lives = 2,
+    brane = nil,
     burdens = {
         [BURDEN_MEMORY]=false,
         [BURDEN_WINGS]=false,
@@ -36,8 +38,9 @@ function reset_game()
     GlobalState.lives = 0
     GlobalState.hp = 7
     GlobalState.void = false
+    GlobalState.brane = get_starting_brane()
     reset_state()
-    load_brane(get_starting_brane())
+    load_brane(GlobalState.brane)
 end
 
 function crash_game()
@@ -442,6 +445,10 @@ function processAction()
                 iris = {x=player_x, y=player_y}
             end
         end
+        if not State.props.nosave then
+            GlobalState.brane = State.path or GlobalState.brane
+            playdate.datastore.write(GlobalState, "save", true)
+        end
         pushAction({type="fadein", t=0, speed=action.speed, lifeloss=action.lifeloss, voidfade=action.voidfade, iris=iris})
     elseif action.type == "atone" then
         reset_game()
@@ -761,6 +768,10 @@ function play_queued_sfx()
     sfxQueue = {}
 end
 
+function game_save()
+    
+end
+
 function update_whiteglitch()
     if State.props.glitch then
         GlobalState.whiteglitch += 1/FPS/WHITEGLITCH_TIME
@@ -873,5 +884,15 @@ for i, arg in ipairs(playdate.argv) do
 end
 
 math.randomseed(playdate.getSecondsSinceEpoch())
-reset_game()
-GlobalState.hasrod = (not State.brane_number) or State.brane_number >= 3
+
+-- try loading
+local _gs = playdate.datastore.read("save")
+if _gs and _gs.brane and #playdate.argv <= 1 then
+    _gs.version = GAME_VERSION
+    GlobalState = _gs
+    print("loading game from " .. GlobalState.brane)
+    load_brane(GlobalState.brane)
+else
+    reset_game()
+    GlobalState.hasrod = (not State.brane_number) or State.brane_number >= 3
+end
