@@ -123,6 +123,23 @@ function dir_to_cardinal(dx, dy)
     end
 end
 
+function table.shuffle(t)
+    local n = #t
+    for i = n, 2, -1 do
+        local j = math.random(i)
+        t[i], t[j] = t[j], t[i]
+    end
+    return t
+end
+
+function iota(n)
+    local t = {}
+    for i=1,n do
+        table.insert(t, i)
+    end
+    return t
+end
+
 function table.has(t, value)
     for k, v in pairs(t) do
         if v == value then
@@ -199,46 +216,6 @@ function sign(a)
     if a > 0 then return 1
     elseif a < 0 then return -1
     else return 0 end
-end
-
-function randlist(n)
-    local l = {}
-    for i=1,(n or 32) do
-        l[i] = math.random()
-    end
-    return l
-end
-
-function randlist(n)
-    local l = {}
-    for i=1,(n or 32) do
-        l[i] = math.random()
-    end
-    return l
-end
-
-
-local rand32_srf = nil
-function get_rand32_srf(randlist32, p, color)
-    color = color or playdate.graphics.kColorWhite
-    if not rand32_srf then
-        rand32_srf = playdate.graphics.image.new(32, 32)
-    end
-    if not rand32_srf then
-        return nil
-    end
-    
-    for x=1,32 do
-        for y=1,32 do
-            local i = (x-1) + (y-1)*32 + 1
-            playdate.graphics.pushContext(rand32_srf)
-            playdate.graphics.setColor(randlist32[i] < p and color or playdate.graphics.kColorClear)
-            playdate.graphics.fillRect(x-1, y-1, 1, 1)
-            playdate.graphics.popContext()
-        end
-    end
-    
-    return rand32_srf
 end
 
 function string.startswith(s, prefix)

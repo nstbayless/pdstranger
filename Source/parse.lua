@@ -7,6 +7,8 @@ local function parse_command(argv)
         State.nextbrane = argv[2]
     elseif argv[1] == "voidcondition" then
         State.voidcondition = argv[2]
+    elseif argv[1] == "prop" then
+        State.props[argv[2]] = argv[3] or true
     elseif argv[1] == "egg" then    
         table.insert(State.eggmessage, argv[2])
     elseif argv[1] == "mus" then
@@ -119,7 +121,24 @@ function load_brane(path, retry)
         end
     end
     
-    load_hud()
+    -- randomize
+    if State.props.random then
+        for i=1,TIDX_MAX do
+            if math.random() > 0.7 then
+                State.tiles[i] = "floor"
+            else
+                State.tiles[i] = "void"
+            end
+        end
+        
+        -- stairs
+        load_object(math.random(W) - 1, math.random(H) - 1, '/')
+    end
+    
+    if not State.props.nohud then
+        load_hud()
+    end
+    
     music_play(State.music)
     return true
 end

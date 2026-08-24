@@ -160,14 +160,13 @@ function TILES.hud.onrod(tidx, tstate, action)
             GlobalState.burdens[burden_idx] = action == "place"
         end
     elseif tstate == "_brane" and action == "store" then
-        -- TODO -- br nil?
-        reset_game()
+        crash_game()
     elseif tstate == "_infty" and action == "store" then
         -- TODO -- crash?
-        reset_game()
+        crash_game()
     elseif tstate == "_rod" and action == "store" then
         -- TODO -- crash?
-        reset_game()
+        crash_game()
     end
 end
 

@@ -52,6 +52,7 @@ State = {
     round = 0,
     
     eggmessage = {},
+    props = {},
     brane_number = 1,
     memento = false,
     levzap = false,
@@ -170,6 +171,9 @@ end
 function get_stairs_brane()
     if State.nextbrane then
         return State.nextbrane
+    end
+    if not State.brane_number then
+        return WHITE_BRANE
     end
     return string.format("branes/b%03d", State.brane_number + 1)
 end

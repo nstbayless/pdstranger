@@ -39,6 +39,11 @@ function reset_game()
     load_brane(get_starting_brane())
 end
 
+function crash_game()
+    music_play("silence", 0)
+    State.glitch = true
+end
+
 playdate.display.setRefreshRate(FPS)
 
 queuedInput = nil
@@ -79,7 +84,6 @@ function handleInput(input)
 end
 
 function player_death(e, cause)
-    fade_pattern = randlist(32*32)
     local t = GlobalState.void and VOIDFADE_TIME or LIVEFADE_TIME
     local deathFade = pushAction({type="fadeout", speed=1.0/t, t=0})
     local x, y = tcoord_of(e.tidx)
@@ -89,7 +93,11 @@ function player_death(e, cause)
     local nloc = getLivesFromHUD()
     if en and en.base.bee and nloc >= 1 and cause == "fall" then
         GlobalState.lives = 0
-        deathFade.nextbrane = string.format("branes/b%03d", State.brane_number + nloc)
+        if not State.brane_number then
+            deathFade.nextbrane = WHITE_BRANE
+        else
+            deathFade.nextbrane = string.format("branes/b%03d", State.brane_number + nloc)
+        end
         deathFade.iris = {x=x,y=y}
         deathFade.speed=1.0/IRIS_SLOW_TIME
         en.flashing = true
@@ -413,7 +421,10 @@ function processAction()
             GlobalState.lives -= 1
         end
         if not load_brane(brane_path) then
-            reset_game()
+            if not load_brane(WHITE_BRANE) then
+                reset_game()
+            end
+            return
         end
         if action.retry_brane then
             State.empty_chests = chests
@@ -431,7 +442,6 @@ function processAction()
             end
         end
         pushAction({type="fadein", t=0, speed=action.speed, lifeloss=action.lifeloss, voidfade=action.voidfade, iris=iris})
-        fade_pattern = randlist(32*32)
     elseif action.type == "atone" then
         reset_game()
         pushAction({type="fadein", t=0, speed=0.6, white=true})
@@ -510,6 +520,7 @@ function processAction()
         State.entity_animating = {}
     elseif action.type == "fall-panic" then
         local player = get_player()
+        player.fly = true
         entity_fall(player, true)
     elseif action.type == "coyote" then
         -- fall into pit
@@ -587,13 +598,13 @@ function draw_special_animations()
         local buff = get_offscreen_buffer()
         playdate.graphics.pushContext(buff)
         
+        local t = action.t
         if fadein and action.voidfade then
             playdate.graphics.clear(playdate.graphics.kColorBlack)
             playdate.graphics.setColor(playdate.graphics.kColorClear)
         else
             playdate.graphics.setColor(playdate.graphics.kColorBlack)
         end
-        local t = action.t
         
         if action.iris then
             local radius = math.floor((fadein and t or (1-t)) * math.max(W-1, H-1)) - 0.5
@@ -605,32 +616,30 @@ function draw_special_animations()
             playdate.graphics.fillRect(0, 0, 400, py - GH*radius)
             playdate.graphics.fillRect(0, 0, px - GW*radius, 240)
         else
-            local srf = nil
-            for x=-1,W do
-                for y=-1,H do
-                    local px, py = pcoord_of(x, y)
-                    
-                    if not action.voidfade then
-                        if not fade_pattern then
-                            fade_pattern = randlist(32*32)
-                        end
-                        if not srf then
-                            srf = get_rand32_srf(fade_pattern, fadein and (1-t) or t, (action.lifeloss or action.white) and playdate.graphics.kColorWhite or playdate.graphics.kColorBlack)
-                        end
-                        -- lifeloss fade
-                        srf:draw(x*32, y*32)
-                    else
-                        -- void fade
-                        if (x + y) % 2 == 0 then
-                            local p = math.max(t*2 - y/H, 0)
-                            px += 0.5 * GW
-                            py += 0.5 * GH
-                            playdate.graphics.fillPolygon(
-                                px + p * GW, py,
-                                px, py + p * GH,
-                                px - p * GW, py,
-                                px, py - p * GH
-                            )
+            if not action.voidfade then
+                playdate.graphics.setColor((action.lifeloss or action.white) and playdate.graphics.kColorWhite or playdate.graphics.kColorBlack)
+                playdate.graphics.setDitherPattern(fadein and t or (1-t))
+                playdate.graphics.fillRect(0, 0, 400, 240)
+            else
+                for x=-1,W do
+                    for y=-1,H do
+                        local px, py = pcoord_of(x, y)
+                        
+                        if not action.voidfade then
+                            -- pass
+                        else
+                            -- void fade
+                            if (x + y) % 2 == 0 then
+                                local p = math.max(t*2 - y/H, 0)
+                                px += 0.5 * GW
+                                py += 0.5 * GH
+                                playdate.graphics.fillPolygon(
+                                    px + p * GW, py,
+                                    px, py + p * GH,
+                                    px - p * GW, py,
+                                    px, py - p * GH
+                                )
+                            end
                         end
                     end
                 end
@@ -714,6 +723,30 @@ function draw_fallers()
     end
 end
 
+function draw_glitch_tiles()
+    local buff = get_offscreen_buffer()
+    playdate.graphics.pushContext(buff)
+    
+    local wimg = playdate.graphics.getWorkingImage()
+    wimg:draw(0, 0)
+    playdate.graphics.popContext(buff)
+    
+    local t = iota(TIDX_MAX*4)
+    table.shuffle(t)
+    
+    for tdst, tsrc in ipairs(t) do
+        local psx, psy = pcoord_of(math.floor(tsrc/4))
+        psx += (tsrc%2) * GW
+        psy += (math.floor(tsrc/2)%2) * GW/2
+        
+        local pdx, pdy = pcoord_of(math.floor(tdst/4))
+        pdx += (tdst%2) * GW/2
+        pdy += (math.floor(tdst/2)%2) * GH/2
+        
+        wimg:draw(pdx, pdy, playdate.graphics.kImageUnflipped, psx, psy, GW/2, GH/2)
+    end
+end
+
 function enqueue_sfx(name)
     sfxQueue[name] = true
 end
@@ -728,7 +761,9 @@ end
 
 function playdate.update()
     -- update
-    if in_dialogue() then
+    if State.glitch then
+        -- nothing
+    elseif in_dialogue() then
         tick_dialogue()
     elseif #actionQueue > 0 or State.entity_moves_pending then
         processAction()
@@ -753,6 +788,10 @@ function playdate.update()
     playdate.graphics.fillRect(0, 0, 400, 240)
     if not State.levzap and not State.atone then
         draw_tiles()
+        if State.props.invert then
+            playdate.graphics.setColor(playdate.graphics.kColorXOR)
+            playdate.graphics.fillRect(0, 0, 400, 240)
+        end
         draw_explosions()
     end
     draw_entities()
@@ -760,6 +799,10 @@ function playdate.update()
     draw_icons()
     draw_special_animations()
     draw_dialogue()
+    
+    if State.glitch then
+        draw_glitch_tiles()
+    end
     
     queuedInputFrames += 1
     tick_frame()
@@ -804,5 +847,6 @@ for i, arg in ipairs(playdate.argv) do
     end
 end
 
+math.randomseed(playdate.getSecondsSinceEpoch())
 reset_game()
 GlobalState.hasrod = (not State.brane_number) or State.brane_number >= 3

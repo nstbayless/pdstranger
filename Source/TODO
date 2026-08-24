@@ -1,5 +1,5 @@
 - tile animations (ice, stairs, button, etc.)
-- falling into pit animation
+- falling into pit animation (panic animation)
 - if an entity dies while on ice, the ice breaks
 - crush faller under tile
 - ice that starts under an enemy should start out pre-broken
