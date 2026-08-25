@@ -1,9 +1,7 @@
-- tile animations (glass, stairs, button, etc.)
+- tile animations (stairs, button)
 - falling into pit animation (panic animation)
 - if an entity dies while on glass, the glass breaks
 - crush faller under tile
-- trap tiles that start under an enemy should be pre-exploded
-- ent-ent collision triggers tile (explosion, etc.)
 - null brane
 - tile.entity_die
 

@@ -10,6 +10,17 @@ function TILES.glass.get_animkey(x, y, tstate)
     return "on"
 end
 
+function TILES.glass.draw(x, y)
+    if State.tile_visitor_heartbeat == 0 then
+        table.insert(State.particles, {anim=ANIM_GLISTEN, x=x-0.5, y=y-0.5, duration=0.7})
+        if not (tile_at(x+1, y+1) == "glass" and ent_at(x+1, y+1)) then
+            table.insert(State.particles, {anim=ANIM_GLISTEN_DELAYED, x=x+0.5, y=y+0.5, duration=0.7*1.5})
+        end
+    end
+    
+    return false
+end
+
 function TILES.explo.get_animkey(x, y, tstate)
     if tstate == "visitor" then
         if State.tile_visitor_heartbeat >= 0.5 then
@@ -148,11 +159,11 @@ function TILES.explo.entity_enter(tidx, e)
 end
 
 function TILES.explo.entity_exit(tidx, e)
-    State.tiles_state[tidx] = nil
+    State.tiles_state[tidx] = "default"
 end
 
 function TILES.explo.entity_die(tidx, e, cause)
-    State.tiles_state[tidx] = nil
+    State.tiles_state[tidx] = "default"
 end
 
 function TILES.explo.oncollision(tidx)

@@ -536,6 +536,26 @@ ANIM_ZAP = {
     w={-TSTRIDE*7 - 14, -TSTRIDE*7 - 15, superfast=true},
 }
 
+ANIM_GLISTEN = {
+    TSTRIDE*8 + 12,
+    TSTRIDE*8 + 13,
+    TSTRIDE*8 + 14,
+    TSTRIDE*8 + 15,
+    TSTRIDE*9 + 12,
+    TSTRIDE*9 + 13
+}
+
+ANIM_GLISTEN_DELAYED = {
+    false,
+    false,
+    TSTRIDE*8 + 12,
+    TSTRIDE*8 + 13,
+    TSTRIDE*8 + 14,
+    TSTRIDE*8 + 15,
+    TSTRIDE*9 + 12,
+    TSTRIDE*9 + 13
+}
+
 OBJLOOKUP = {
 }
 

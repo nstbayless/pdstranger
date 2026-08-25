@@ -17,7 +17,7 @@ State = {
     explosions = {},
     
     -- list of {tile=, x=, y=, t=}
-    icons = {},
+    particles = {},
     
     -- list of falling objects {anim=, tidx=, frame=}
     fallers = {},

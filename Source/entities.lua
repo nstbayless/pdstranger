@@ -492,7 +492,7 @@ function ENTS.superchest.interact(e, ei, dx, dy)
         end
         
         if icon then
-            table.insert(State.icons, {tile=icon, x=x, y=y})
+            table.insert(State.particles, {tile=icon, x=x, y=y, invert=true, raise=true})
         end
         
         ei.visible_state_t = IDOL_TIME*1.1
@@ -529,7 +529,7 @@ function ENTS.chest.interact(e, ei, dx, dy)
                     push_dialogue("Huh!? Where did it go..?", entity_dialogue_side(get_player()))
                 else
                     local ex,ey = tcoord_of(e.tidx)
-                    table.insert(State.icons, {tile=TILE_HUD_LOCUST, x=ex, y=ey})
+                    table.insert(State.particles, {tile=TILE_HUD_LOCUST, x=ex, y=ey, invert=true, raise=true})
                     if not GlobalState.hasGottenLocust then
                         GlobalState.hasGottenLocust = true
                         if GlobalState.void then

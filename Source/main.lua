@@ -111,7 +111,7 @@ function player_death(e, cause)
     
     if not GlobalState.void and nloc >= 1 then
         GlobalState.lives = nloc
-        table.insert(State.icons, {tile=TILE_HUD_LOCUST, x=x, y=y})
+        table.insert(State.particles, {tile=TILE_HUD_LOCUST, x=x, y=y, invert=true, raise=true})
         enqueue_sfx("snd_resurrect")
         pushAction({type="lifeloss", speed=1.0/1.5, t=0})
         deathFade.lifeloss = true
@@ -693,29 +693,34 @@ function draw_explosions()
     end
 end
 
-function draw_icons()
-    if table.empty(State.icons) then return end
+function draw_particles()
+    if table.empty(State.particles) then return end
     
-    if State.frame % 4 >= 2 then
-        playdate.graphics.setImageDrawMode(playdate.graphics.kDrawModeInverted)
-    end
-    
-    for i, icon in pairs(table.copy(State.icons)) do
+    for i, icon in pairs(table.copy(State.particles)) do
         if not icon.t then
             icon.t = 0
         end
-        icon.t += 1.0/FPS/IDOL_TIME
+        icon.t += 1.0/FPS/(icon.duration or IDOL_TIME)
         if icon.t >= 1 then
-            State.icons[i] = nil
+            State.particles[i] = nil
         else
-            local y = icon.y - math.min(icon.t, 0.3)*2.5
+            if State.frame % 4 >= 2 and icon.invert then
+                playdate.graphics.setImageDrawMode(playdate.graphics.kDrawModeInverted)
+            end
+            local y = icon.y
+            if icon.raise then
+                y -= math.min(icon.t, 0.3)*2.5
+            end
             local px, py = pcoord_of(icon.x, y)
             
-            draw_gfx(px, py, icon.tile)
+            if icon.anim then
+                draw_anim(px, py, icon.anim, math.floor(icon.t * #icon.anim))
+            else
+                draw_gfx(px, py, icon.tile)
+            end
+            playdate.graphics.setImageDrawMode(playdate.graphics.kDrawModeCopy)
         end
     end
-    
-    playdate.graphics.setImageDrawMode(playdate.graphics.kDrawModeCopy)
 end
 
 function draw_fallers()
@@ -832,7 +837,9 @@ function playdate.update()
     end
     draw_entities()
     draw_fallers()
-    draw_icons()
+    if not State.levzap and not State.atone then
+        draw_particles()
+    end
     draw_special_animations()
     draw_dialogue()
     
