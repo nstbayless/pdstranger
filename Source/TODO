@@ -1,5 +1,12 @@
-- tile animations (ice, stairs, button, etc.)
+- tile animations (glass, stairs, button, etc.)
 - falling into pit animation (panic animation)
-- if an entity dies while on ice, the ice breaks
+- if an entity dies while on glass, the glass breaks
 - crush faller under tile
-- ice that starts under an enemy should start out pre-broken
+- trap tiles that start under an enemy should be pre-exploded
+- ent-ent collision triggers tile (explosion, etc.)
+- null brane
+- tile.entity_die
+
+- mimic timing:
+    - same movement as any other entities
+    - what about statue pushing into the path of another enemy?

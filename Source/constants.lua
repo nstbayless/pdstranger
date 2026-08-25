@@ -12,8 +12,8 @@ TILE_B_FLOOR = 2
 TILE_B_STAIRS = 3
 TILE_B_STAIRS_LOCKED = 4
 TILE_B_BUTTON = 5
-TILE_B_ICE = 6
-TILE_B_ICE_BROKEN = 7
+TILE_B_GLASS = 6
+TILE_B_GLASS_BROKEN = 7
 TILE_B_TRAP = 8
 TILE_B_EXPLO = 9
 TILE_B_SHADE = 10
@@ -112,11 +112,11 @@ TILES = {
         anim=5,
     },
     
-    ice = {
+    glass = {
         sym="#",
-        ice=true,
+        glass=true,
         roddable=true,
-        rodbox = TILE_ROD_BOX + TILE_B_ICE,
+        rodbox = TILE_ROD_BOX + TILE_B_GLASS,
         transparent=true,
         anim={
             on=6,
@@ -139,7 +139,8 @@ TILES = {
         sym="*",
         anim={
             default=9,
-            trigger={false, 9, superfast=true}
+            visitor={9, 9, 19, superfast=true},
+            trigger={false, 9, superfast=true},
         },
     },
     
@@ -611,3 +612,5 @@ BURDEN_SWORD = 3
 
 WHITE_BRANE = "branes/w001"
 WHITEGLITCH_TIME = 45
+
+VISITOR_HEARTBEAT_TIME = 4.3

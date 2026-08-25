@@ -803,6 +803,11 @@ end
 function entity_die(e, cause)
     if not e then return end
     
+    local tstring = tile_at(e.tidx)
+    if TILES[tstring] and TILES[tstring].entity_die then
+        TILES[tstring].entity_die(e.tidx, e, cause)
+    end
+    
     if e.base.ondeath then
         if e.base.ondeath(e, cause) then
             return
@@ -881,10 +886,22 @@ function entity_execute_move(e)
         local movers = State.entity_moving_to[dstidx]
         assert(movers, "never set entity_moving_to before move!")
         if movers and #movers >= 2 then
-            entity_die(e, "coincide")
+            for i, mover in ipairs(movers) do
+                mover.queued_move = nil
+                entity_die(mover, "collision")
+            end
+            
             State.explosions[dstidx] = true
+            
             -- kill whatever is there, too
-            entity_die(ent_at(dstidx), "coincide")
+            entity_die(ent_at(dstidx), "collision")
+            
+            -- then trigger the tile that's there as well
+            local tstring = tile_at(dstidx)
+            local tile = TILES[tstring]
+            if tile and tile.oncollision then
+                tile.oncollision(dstidx)
+            end
             enqueue_sfx("snd_enemy_explosion")
         else
             if q.pushed then

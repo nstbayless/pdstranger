@@ -41,6 +41,11 @@ State = {
     -- ticks at FPS
     frame = 0,
     
+    -- animate tiles that have entities on them.
+    -- increases at 1.0/s
+    -- occasionally reset to 0
+    tile_visitor_heartbeat = 0,
+    
     -- ticks with music
     -- each integer represents a beat
     frame_animation = 0,
@@ -68,6 +73,10 @@ CLEAN_STATE = table.deepcopy(State)
 function tick_frame()
     State.frame += 1
     State.frame_animation = music_get_beat()
+    State.tile_visitor_heartbeat += 1.0/FPS
+    if State.tile_visitor_heartbeat >= VISITOR_HEARTBEAT_TIME then
+        State.tile_visitor_heartbeat = 0
+    end
 end
 
 function pcoord_of(x, y)
@@ -116,11 +125,14 @@ function ent_at(x, y)
     return State.ents[tidx]
 end
 
-function add_entity(e, tidx)
+function add_entity(e, tidx, init)
     assert(tidx, "null tidx")
     e.tidx = tidx
-    entity_init(e)
+    if init ~= false then
+        entity_init(e)
+    end
     State.ents[tidx] = e
+    return e
 end
 
 -- loads an object (entity or tile) at the given location,
@@ -155,7 +167,7 @@ function load_object(x, y, glyph)
         
         assert(tidx, "null tidx")
         
-        add_entity(e, tidx)
+        add_entity(e, tidx, false)
         
         return "entity", objkey
     else

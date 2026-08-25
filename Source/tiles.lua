@@ -2,13 +2,24 @@ function TILES.stair.get_animkey()
     return get_stairs_locked() and "off" or "on"
 end
 
-function TILES.ice.get_animkey(x, y, tstate)
+function TILES.glass.get_animkey(x, y, tstate)
     if ent_at(x, y) then
         return "off"
     end
     
     return "on"
 end
+
+function TILES.explo.get_animkey(x, y, tstate)
+    if tstate == "visitor" then
+        if State.tile_visitor_heartbeat >= 0.5 then
+            return "default"
+        end
+    end
+    
+    return tstate
+end
+
 
 function TILES.button.entity_enter(tidx, e, dx, dy)
     if get_stairs_locked() then
@@ -48,21 +59,52 @@ function TILES.shadeglyph.entity_exit(tidx, e, dx, dy)
     }, tidx)
 end
 
-function TILES.ice.entity_enter(tidx, e)
+function TILES.glass.entity_enter(tidx, e)
     if State.tiles_state[tidx] ~= "on" then
         enqueue_sfx("snd_stepglassfloor")
     end
     State.tiles_state[tidx] = "on"
 end
 
-function TILES.ice.entity_exit(tidx, e)
+function TILES.glass.entity_exit(tidx, e)
     State.tiles[tidx] = "void"
     State.explosions[tidx] = true
     -- TODO: right sfx for this
     enqueue_sfx("snd_curtain_open")
 end
 
+function TILES.glass.oncollision(tidx)
+    State.tiles[tidx] = "void"
+    State.explosions[tidx] = true
+end
+
+function TILES.glass.entity_die(tidx, e, cause)
+    if cause ~= "crush" then
+        State.tiles[tidx] = "void"
+        State.explosions[tidx] = true
+    end
+end
+
 function TILES.trap.entity_enter(tidx, e)
+    State.tiles[tidx] = "explo"
+    State.tiles_state[tidx] = "visitor"
+    enqueue_sfx("snd_activate")
+end
+
+function TILES.trap.init(tidx)
+    if ent_at(tidx) then
+        State.tiles[tidx] = "explo"
+        State.tiles_state[tidx] = "visitor"
+    end
+end
+
+function TILES.explo.init(tidx)
+    if ent_at(tidx) then
+        State.tiles_state[tidx] = "visitor"
+    end
+end
+
+function TILES.trap.oncollision(tidx)
     State.tiles[tidx] = "explo"
     enqueue_sfx("snd_activate")
 end
@@ -102,6 +144,18 @@ function TILES.death.trigger(tidx)
 end
 
 function TILES.explo.entity_enter(tidx, e)
+    State.tiles_triggered[tidx] = true
+end
+
+function TILES.explo.entity_exit(tidx, e)
+    State.tiles_state[tidx] = nil
+end
+
+function TILES.explo.entity_die(tidx, e, cause)
+    State.tiles_state[tidx] = nil
+end
+
+function TILES.explo.oncollision(tidx)
     State.tiles_triggered[tidx] = true
 end
 

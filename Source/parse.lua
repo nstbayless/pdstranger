@@ -139,6 +139,19 @@ function load_brane(path, retry)
         load_hud()
     end
     
+    -- init all tiles
+    for i, tstring in ipairs(State.tiles) do
+        if TILES[tstring].init then
+            print("init", tstring, i)
+            TILES[tstring].init(i)
+        end
+    end
+    
+    -- init all entities
+    for tidx, e in pairs(State.ents) do
+        entity_init(e)
+    end
+    
     music_play(State.music)
     return true
 end
