@@ -696,6 +696,26 @@ function draw_explosions()
     end
 end
 
+function draw_stair_animation(t)
+    local tidx = find_tile("stair")
+    if not tidx then return end
+    
+    local px,py = pcoord_of(tidx)
+    
+    local fadep = math.min(t, 0.5)*2
+    
+    local p = fadep*(math.sin(t*music_get_beats_per_frame()*FPS*math.tau/5)*0.255 + 0.5)
+    
+    playdate.graphics.setStencilPattern(fadep)
+    playdate.graphics.setImageDrawMode(playdate.graphics.kDrawModeFillBlack)
+    draw_anim(px - GW, py - GH, ANIM_STAIRS)
+    playdate.graphics.setImageDrawMode(playdate.graphics.kDrawModeCopy)
+    
+    playdate.graphics.setStencilPattern(p)
+    draw_anim(px - GW, py - GH, ANIM_STAIRS)
+    playdate.graphics.clearStencil()
+end
+
 function draw_particles(behind)
     if table.empty(State.particles) then return end
     
@@ -845,6 +865,9 @@ function playdate.update()
     draw_fallers()
     if not State.levzap and not State.atone then
         draw_particles(false)
+        if State.time_since_action >= WAIT_TIME_REVEAL_BIG_ANIMATIONS then
+            draw_stair_animation(State.time_since_action - WAIT_TIME_REVEAL_BIG_ANIMATIONS)
+        end
     end
     draw_special_animations()
     draw_dialogue()
