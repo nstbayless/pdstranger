@@ -21,6 +21,13 @@ function TILES.glass.draw(x, y)
     return false
 end
 
+function TILES.button.draw(x, y)
+    if State.tile_visitor_heartbeat == 0 and State.time_since_action >= WAIT_TIME_REVEAL_BIG_ANIMATIONS then
+        table.insert(State.particles, {anim=ANIM_BUTTON, x=x-1, y=y-1, duration=0.4, behind=true})
+    end
+    return false
+end
+
 function TILES.explo.get_animkey(x, y, tstate)
     if tstate == "visitor" then
         if State.tile_visitor_heartbeat >= 0.5 then

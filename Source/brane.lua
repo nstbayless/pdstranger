@@ -44,7 +44,7 @@ State = {
     -- animate tiles that have entities on them.
     -- increases at 1.0/s
     -- occasionally reset to 0
-    tile_visitor_heartbeat = 0,
+    tile_visitor_heartbeat = VISITOR_HEARTBEAT_TIME*0.8,
     
     -- ticks with music
     -- each integer represents a beat
@@ -63,6 +63,7 @@ State = {
     levzap = false,
     atone = false,
     voidcondition = nil,
+    time_since_action = 1000,
     
     -- path to brane file
     path = nil,
@@ -77,6 +78,7 @@ function tick_frame()
     if State.tile_visitor_heartbeat >= VISITOR_HEARTBEAT_TIME then
         State.tile_visitor_heartbeat = 0
     end
+    State.time_since_action += 1.0/FPS
 end
 
 function pcoord_of(x, y)

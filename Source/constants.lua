@@ -5,6 +5,7 @@ GH = 24
 GAME_VERSION = 100
 
 TSTRIDE = 20
+BIGSTRIDE = 6
 
 TILE_B_VOID = 0
 TILE_CLIFF = 1
@@ -545,6 +546,21 @@ ANIM_GLISTEN = {
     TSTRIDE*9 + 13
 }
 
+ANIM_STAIRS = {
+    BIGSTRIDE*0 + 0,
+    BIGSTRIDE*0 + 1,
+    big=true
+}
+
+ANIM_BUTTON = {
+    BIGSTRIDE*1 + 0,
+    BIGSTRIDE*1 + 1,
+    BIGSTRIDE*1 + 2,
+    BIGSTRIDE*1 + 3,
+    BIGSTRIDE*1 + 4,
+    big=true
+}
+
 ANIM_GLISTEN_DELAYED = {
     false,
     false,
@@ -634,3 +650,4 @@ WHITE_BRANE = "branes/w001"
 WHITEGLITCH_TIME = 45
 
 VISITOR_HEARTBEAT_TIME = 4.3
+WAIT_TIME_REVEAL_BIG_ANIMATIONS = 15.8

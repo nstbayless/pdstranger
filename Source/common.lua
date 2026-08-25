@@ -64,13 +64,13 @@ function draw_string(px, py, s, flags)
     playdate.graphics.setImageDrawMode(playdate.graphics.kDrawModeCopy)
 end
 
-function draw_gfx(px, py, gfxidx)
+function draw_gfx(px, py, gfxidx, big)
     if not gfxidx then return end
     local flip = (gfxidx < 0) and playdate.graphics.kImageFlippedX or nil
     if flip then
         gfxidx *= -1
     end
-    GFX:drawImage(gfxidx + 1, px, py, flip)
+    (big and BIGGFX or GFX):drawImage(gfxidx + 1, px, py, flip)
 end
 
 function draw_anim(px, py, anim, f)
@@ -88,7 +88,7 @@ function draw_anim(px, py, anim, f)
     end
     f = math.floor(f)
     f %= #anim
-    draw_gfx(px + (anim.offx or 0), py + (anim.offy or 0), anim[f + 1])
+    draw_gfx(px + (anim.offx or 0), py + (anim.offy or 0), anim[f + 1], anim.big)
 end
 
 function hex(n)

@@ -23,6 +23,7 @@ GlobalState = {
 }
 
 GFX = playdate.graphics.imagetable.new("tiles")
+BIGGFX = playdate.graphics.imagetable.new("biganim")
 FONT = playdate.graphics.imagetable.new("font")
 
 function get_starting_brane()
@@ -82,8 +83,10 @@ function handleInput(input)
         else
             pushAction({type="move", e=player, dx=input.dx, dy=input.dy})
         end
+        State.time_since_action = 0
     elseif input.type == "act" then
         pushAction({type="act", e=player})
+        State.time_since_action = 0
     end
 end
 
@@ -693,32 +696,34 @@ function draw_explosions()
     end
 end
 
-function draw_particles()
+function draw_particles(behind)
     if table.empty(State.particles) then return end
     
     for i, icon in pairs(table.copy(State.particles)) do
-        if not icon.t then
-            icon.t = 0
-        end
-        icon.t += 1.0/FPS/(icon.duration or IDOL_TIME)
-        if icon.t >= 1 then
-            State.particles[i] = nil
-        else
-            if State.frame % 4 >= 2 and icon.invert then
-                playdate.graphics.setImageDrawMode(playdate.graphics.kDrawModeInverted)
+        if (not icon.behind) == (not behind) then
+            if not icon.t then
+                icon.t = 0
             end
-            local y = icon.y
-            if icon.raise then
-                y -= math.min(icon.t, 0.3)*2.5
-            end
-            local px, py = pcoord_of(icon.x, y)
-            
-            if icon.anim then
-                draw_anim(px, py, icon.anim, math.floor(icon.t * #icon.anim))
+            icon.t += 1.0/FPS/(icon.duration or IDOL_TIME)
+            if icon.t >= 1 then
+                State.particles[i] = nil
             else
-                draw_gfx(px, py, icon.tile)
+                if State.frame % 4 >= 2 and icon.invert then
+                    playdate.graphics.setImageDrawMode(playdate.graphics.kDrawModeInverted)
+                end
+                local y = icon.y
+                if icon.raise then
+                    y -= math.min(icon.t, 0.3)*2.5
+                end
+                local px, py = pcoord_of(icon.x, y)
+                
+                if icon.anim then
+                    draw_anim(px, py, icon.anim, math.floor(icon.t * #icon.anim))
+                else
+                    draw_gfx(px, py, icon.tile)
+                end
+                playdate.graphics.setImageDrawMode(playdate.graphics.kDrawModeCopy)
             end
-            playdate.graphics.setImageDrawMode(playdate.graphics.kDrawModeCopy)
         end
     end
 end
@@ -834,11 +839,12 @@ function playdate.update()
             playdate.graphics.fillRect(0, 0, 400, 240)
         end
         draw_explosions()
+        draw_particles(true)
     end
     draw_entities()
     draw_fallers()
     if not State.levzap and not State.atone then
-        draw_particles()
+        draw_particles(false)
     end
     draw_special_animations()
     draw_dialogue()
