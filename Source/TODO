@@ -2,7 +2,6 @@
 - if an entity dies while on glass, the glass breaks
 - crush faller under tile
 - null brane
-- tile.entity_die
 
 - mimic timing:
     - same movement as any other entities

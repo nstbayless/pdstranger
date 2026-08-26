@@ -34,7 +34,7 @@ local function parse_command(argv)
         e.state = argv[5] or nil
         
         if not e.basekey then return end
-        add_entity(e, tidx_of(x, y))
+        add_entity(e, tidx_of(x, y), false)
     end
 end
 

@@ -700,6 +700,8 @@ function draw_stair_animation(t)
     local tidx = find_tile("stair")
     if not tidx then return end
     
+    if not ent_at(tidx) then return end
+    
     local px,py = pcoord_of(tidx)
     
     local fadep = math.min(t, 0.5)*2
