@@ -84,6 +84,10 @@ function tick_dialogue()
         if setmusic then
             music_play(setmusic, d.msg.fadetime)
         end
+        local pa = d.msg.pushaction
+        if pa then
+            pushAction(table.copy(d.msg.pushaction))
+        end
         table.remove(dialogueQueue, 1)
         return
     end
@@ -140,6 +144,8 @@ end
 function draw_dialogue()
     local d = in_dialogue()
     if not d then return end
+    
+    if d.msg.pushaction then return end
     
     local htop = H-3
     if d.side and d.side < 0 then

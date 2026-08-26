@@ -220,7 +220,7 @@ function exit_by_stairs()
         player.frame_animation = 0
         player.frame_animation_speed = 7
         enqueue_sfx("snd_stairs")
-        pushAction({type="fadeout", speed=1.0/1.2, t=0, iris={x=player_x, y=player_y}, nextbrane=get_stairs_brane()})
+        pushAction({type="fadeout", speed=1.0/1.2, t=0, iris={x=player_x+(player.offx or 0), y=player_y+(player.offy or 0)}, nextbrane=get_stairs_brane()})
     end
 end
 
@@ -443,6 +443,7 @@ function collect_memento(permanent)
         State.memento.collected = true
         if not GlobalMementos[State.memento.tag] then
             GlobalMementos[State.memento.tag] = true
+            enqueue_sfx("snd_token_collect")
             playdate.datastore.write(GlobalMementos, "memento", true)
             return true
         end

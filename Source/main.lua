@@ -1,3 +1,5 @@
+print("main start.")
+
 import "constants"
 import "common"
 import "entities"
@@ -7,11 +9,15 @@ import "parse"
 import "dialogue"
 import "sfx"
 import "music"
+import "smooth"
+
+print("imports finished.")
 
 GlobalState = {
     version = GAME_VERSION,
     void = false,
     whiteglitch = 0,
+    hasrod = false,
     hp = 7,
     lives = 2,
     brane = nil,
@@ -29,8 +35,6 @@ BIGGFX = playdate.graphics.imagetable.new("biganim")
 FONT = playdate.graphics.imagetable.new("font")
 EGGDIALOGUE = read_lines_in_file("misc/eggs") or {"Howdy."}
 MIMICDIALOGUE = read_lines_in_file("misc/mimics") or {"Can I help you?"}
-
-print("EGG", EGGDIALOGUE, #EGGDIALOGUE, EGGDIALOGUE[1])
 
 function get_starting_brane()
     for i, arg in ipairs(playdate.argv) do
@@ -403,7 +407,6 @@ function processAction()
                     enqueue_sfx("snd_voidrod_place")
                     
                     -- collect memento
-                    print(State.memento, has_memento())
                     if State.memento and has_memento() == 0 then
                         if State.memento.x == x + dx and State.memento.y == y + dy then
                             print("collect!")
@@ -504,6 +507,18 @@ function processAction()
         end
     elseif action.type == "levzap-pre" then
         enqueue_sfx("snd_judgment")
+    elseif action.type == "getrod" then
+        pushAction({type="fadein", speed=1.0/0.9, t=0, white=true})
+        local player = get_player()
+        if player then
+            local x,y = tcoord_of(player.tidx)
+            if player.offx >= 0.5 then
+                x += 1
+            end
+            entity_set_position(player, x, y)
+            player.offx = 0
+            player.offy = 0
+        end
     elseif action.type == "levzap-bolt" then
         for i, e in ipairs(State.entity_killing_player) do
             e.visible_state = nil
@@ -577,6 +592,87 @@ function draw_special_animations()
                 draw_gfx(px, py, TILE_QUESTION)
             end
         end
+    elseif action.type == "getrod" then
+        local player = get_player()
+        if player then
+            player.visible_state_t = 1
+            player.visible_state = "item"
+        end
+        
+        local minr = math.clamp(action.t * 2 - 0.5, 0, 1) * (36 + 8*math.sin(action.t*5)) 
+        local maxr = 350 * (1.0 - action.t)
+        
+        if not action.ipx then
+            action.ipx, action.ipy = 0, 0
+            enqueue_sfx("snd_voidrod_revealed")
+        end
+        for i, idol in pairs(State.particles) do
+            action.ipx, action.ipy = pcoord_of(idol.x, idol.y)
+            action.ipx += 0.65*GW
+            action.ipy -= 0.35*GH
+        end
+        
+        local px,py = action.ipx,action.ipy
+        
+        local q = 1.0 - action.t * 3
+        
+        playdate.graphics.setColor(playdate.graphics.kColorWhite)
+        
+        -- diamonds
+        local M = 10
+        for i=0,30 do
+            local qi = q + 3.2*(1-1/(i*0.125+1))
+            qi *= maxr
+            if qi >= 0 and qi < maxr + M then
+                -- midrects
+                for k = -1,1,2 do
+                    playdate.graphics.fillPolygon(
+                        px - qi, py,
+                        px, py - qi*k,
+                        px + qi, py,
+                        px + qi+M, py,
+                        px, py - (qi + M)*k,
+                        px - qi-M, py
+                    )
+                end
+            end
+        end
+        
+        -- inside
+        playdate.graphics.fillPolygon(
+            px - minr, py,
+            px, py - minr,
+            px + minr, py,
+            px, py + minr
+        )
+        
+        -- outside
+        playdate.graphics.fillPolygon(
+            px - maxr, py,
+            px, py - maxr,
+            px - maxr, py - maxr
+        )
+        playdate.graphics.fillPolygon(
+            px - maxr, py,
+            px, py + maxr,
+            px - maxr, py + maxr
+        )
+        playdate.graphics.fillPolygon(
+            px + maxr, py,
+            px, py + maxr,
+            px + maxr, py + maxr
+        )
+        playdate.graphics.fillPolygon(
+            px + maxr, py,
+            px, py - maxr,
+            px + maxr, py - maxr
+        )
+        playdate.graphics.fillRect(0, 0, px - maxr, 240)
+        playdate.graphics.fillRect(0, 0, 400, py - maxr)
+        playdate.graphics.fillRect(px + maxr, 0, 400, 240)
+        playdate.graphics.fillRect(0, py + maxr, 400, 240)
+        
+        return true -- don't draw dialogue
     elseif action.type == "levzap-bolt" then
         local player = get_player()
         if player then
@@ -868,10 +964,12 @@ function playdate.update()
     -- update
     if State.glitch then
         -- nothing
-    elseif in_dialogue() then
-        tick_dialogue()
     elseif #actionQueue > 0 or State.entity_moves_pending then
         processAction()
+    elseif in_dialogue() then
+        tick_dialogue()
+    elseif not GlobalState.hasrod then
+        update_smoothmovement()
     elseif queuedInput then
         if queuedInputFrames >= MAX_INPUT_QUEUE_FRAMES then
             queuedInput = nil
@@ -914,8 +1012,9 @@ function playdate.update()
             draw_stair_animation(State.time_since_action - WAIT_TIME_REVEAL_BIG_ANIMATIONS)
         end
     end
-    draw_special_animations()
-    draw_dialogue()
+    if not draw_special_animations() then
+        draw_dialogue()
+    end
     
     if State.glitch then
         draw_glitch_tiles()
@@ -980,3 +1079,5 @@ else
     reset_game()
     GlobalState.hasrod = (not State.brane_number) or State.brane_number >= 3
 end
+
+print("main complete.")

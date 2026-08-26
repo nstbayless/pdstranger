@@ -321,3 +321,7 @@ function gcd(a, b)
     
     return gcd(b, a % b)
 end
+
+function math.clamp(x, a, b)
+    return math.max(math.min(x, b), a)
+end

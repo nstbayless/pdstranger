@@ -440,6 +440,7 @@ end
 
 local superchest_messages = {
     rod = {
+        {pushaction={type="getrod", t=0, speed=1.0/GETROD_ANIMATION_TIME}},
         "[You acquired a strange rod]",
         "[Simply holding it makes you feel uneasy]",
         "[Something is wrong]",
@@ -541,9 +542,12 @@ function ENTS.superchest.interact(e, ei, dx, dy)
         
         local icon = nil
         
+        enqueue_sfx("snd_open")
+        
         if e.item == "rod" then
             GlobalState.hasrod = true
             icon = TILE_HUD_ROD
+            print("hasrod", GlobalState.hasrod)
         elseif e.item == "memory" then
             GlobalState.burdens[BURDEN_MEMORY] = true
             icon = TILE_HUD_BDN_MEMORY
