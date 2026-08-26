@@ -521,33 +521,33 @@ function ENTS.chest.interact(e, ei, dx, dy)
             enqueue_sfx("snd_activate")
             
             if nloc <= 0 then
-                push_dialogue("Empty.", entity_dialogue_side(get_player()))
+                push_dialogue("[Empty.]", entity_dialogue_side(get_player()))
             elseif nloc == 1 then
                 success = gainLife()
                 
                 if not success then
-                    push_dialogue("Huh!? Where did it go..?", entity_dialogue_side(get_player()))
+                    push_dialogue("[Huh!? Where did it go..?]", entity_dialogue_side(get_player()))
                 else
                     local ex,ey = tcoord_of(e.tidx)
                     table.insert(State.particles, {tile=TILE_HUD_LOCUST, x=ex, y=ey, invert=true, raise=true})
                     if not GlobalState.hasGottenLocust then
                         GlobalState.hasGottenLocust = true
                         if GlobalState.void then
-                            push_dialogue("You found a locust idol!\nIt looks kind of tasty...", entity_dialogue_side(get_player()))
+                            push_dialogue("[You found a locust idol!]\n[It looks kind of tasty...]", entity_dialogue_side(get_player()))
                         else
-                            push_dialogue("You found a locust idol!", entity_dialogue_side(get_player()))
-                            push_dialogue("Perhaps it will come in handy in the long run?", entity_dialogue_side(get_player()))
+                            push_dialogue("[You found a locust idol!]", entity_dialogue_side(get_player()))
+                            push_dialogue("[Perhaps it will come in handy in the long run?]", entity_dialogue_side(get_player()))
                         end
                     end
                 end
             else
                 success = gainLife(nloc)
                 if not success then
-                    push_dialogue("Huh!? Where did they go..?", entity_dialogue_side(get_player()))
+                    push_dialogue("[Huh!? Where did they go..?]", entity_dialogue_side(get_player()))
                 else
                     if not GlobalState.hasGottenLocustLucky then
                         GlobalState.hasGottenLocustLucky = true
-                        push_dialogue(string.format("L U C K Y ! !", entity_dialogue_side(get_player())))
+                        push_dialogue(string.format("[L U C K Y !]", entity_dialogue_side(get_player())))
                     end
                 end
             end
