@@ -444,7 +444,7 @@ ENTS = {
         enemy=true,
         swordable=true,
         anim={
-            idle={TSTRIDE*6 + 0, TSTRIDE*6 + 1},
+            idle={TSTRIDE*6 + 0, TSTRIDE*6 + 1, fast=true},
             active={TSTRIDE*6 + 2, TSTRIDE*6 + 3, TSTRIDE*6 + 4, TSTRIDE*6 + 5, fast=true},
             fall = {11*TSTRIDE + 10, 11*TSTRIDE + 11, unpack(FALLING_OBJECT_ANIM)},
         },

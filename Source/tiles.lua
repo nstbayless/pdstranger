@@ -23,7 +23,9 @@ end
 
 function TILES.button.draw(x, y)
     if State.tile_visitor_heartbeat == 0 and State.time_since_action >= WAIT_TIME_REVEAL_BIG_ANIMATIONS then
-        table.insert(State.particles, {anim=ANIM_BUTTON, x=x-1, y=y-1, duration=0.4, behind=true})
+        if ent_at(x, y) then
+            table.insert(State.particles, {anim=ANIM_BUTTON, x=x-1, y=y-1, duration=0.4, behind=true})
+        end
     end
     return false
 end

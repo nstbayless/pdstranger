@@ -446,6 +446,54 @@ function ENTS.superchest.init(e)
     end
 end
 
+function ENTS.chest.bump(e, e2, dx, dy)
+    if e.state ~= "on" then return end
+    if not e.bumpstate then e.bumpstate = 0 end
+    if e.bumpstate ~= "fail" and e.bumpstate ~= "win" then
+        e.bumpround = 0
+        if dy ~= 1 then
+            e.bumpstate = 0
+        else
+            e.bumpstate += 1
+            if e.bumpstate >= 4 then
+                e.bumpstate = "fail"
+            elseif e.bumpstate == 3 then
+                e.bumptime = 0
+            end
+        end
+    end
+end
+
+function ENTS.chest.draw(e)
+    if e.bumpstate == 3 then
+        e.bumptime += 1.0/FPS
+        if e.bumptime >= 3 then
+            e.flashing = true
+            e.visible_state_t = 0.8
+            e.bumpstate = "win"
+            enqueue_sfx("snd_resurrect")
+            e.count = 2 -- yeah just 2 for now
+        end
+    end
+    
+    return false
+end
+
+function ENTS.chest.update(e, dx, dy)
+    if not e.bumpround then return end
+    e.bumpround += 1
+    if e.bumpround >= 2 then
+        e.bumpstate = 0
+    end 
+end
+
+function ENTS.chest.init(e)
+    -- paranoia
+    if tile_at(e.tidx) == "void" then
+        State.tiles[e.tidx] = "floor"
+    end
+end
+
 function ENTS.superchest.interact(e, ei, dx, dy)
     if not string.startswith(e.state, "on") then
         return
@@ -519,11 +567,11 @@ function ENTS.chest.interact(e, ei, dx, dy)
             State.empty_chests[e.tidx] = true
             
             enqueue_sfx("snd_activate")
-            
+            local ex,ey = tcoord_of(e.tidx)
             if nloc <= 0 then
                 push_dialogue("[Empty.]", entity_dialogue_side(get_player()))
             elseif nloc == 1 then
-                success = gainLife()
+                local success = gainLife()
                 
                 if not success then
                     push_dialogue("[Huh!? Where did it go..?]", entity_dialogue_side(get_player()))
@@ -541,13 +589,17 @@ function ENTS.chest.interact(e, ei, dx, dy)
                     end
                 end
             else
-                success = gainLife(nloc)
+                local success = gainLife(nloc)
+                -- TODO: double locust
+                table.insert(State.particles, {tile=TILE_HUD_LOCUST, x=ex, y=ey, invert=true, raise=true})
                 if not success then
                     push_dialogue("[Huh!? Where did they go..?]", entity_dialogue_side(get_player()))
                 else
                     if not GlobalState.hasGottenLocustLucky then
                         GlobalState.hasGottenLocustLucky = true
-                        push_dialogue(string.format("[L U C K Y !]", entity_dialogue_side(get_player())))
+                        push_dialogue(string.format("[You found %d locust idols!]", nloc), entity_dialogue_side(get_player()))
+                        push_dialogue("[L U C K Y !]", entity_dialogue_side(get_player()))
+                        push_dialogue("[What, were you expecting more?]", entity_dialogue_side(get_player()))
                     end
                 end
             end
@@ -693,11 +745,11 @@ function get_entity_move_blocker(e, dx, dy, flags)
         else
             local b, b2 = e.base, e2.base
             if get_entity_solid(e2) then
-                return "stopped"
+                return "stopped", e2
             elseif b2.shade and (flags & MOVE_FLAG_IGNORE_SHADES) ~= 0 then
                 return nil
             elseif b2.pushblocker and (flags & MOVE_FLAG_NO_PUSHBLOCKER) ~= 0 then
-                return "stopped"
+                return "stopped", e2
             elseif b2.push then
                 if (flags & MOVE_FLAG_NO_PUSH) ~= 0 then
                     return "stopped"
@@ -705,12 +757,12 @@ function get_entity_move_blocker(e, dx, dy, flags)
                 if can_push(e2, dx, dy) then
                     return "push", e2
                 else
-                    return "stopped"
+                    return "stopped", e2
                 end
             elseif b2.shade and b.enemy then
                 return "pdie", e2
             elseif b2.enemy and b.enemy then
-                return "stopped"
+                return "stopped", e2
             elseif b2.enemy and b.player then
                 return "pdie", e2
             elseif b2.player and b.enemy and (flags & MOVE_FLAG_IGNORE_PLAYER) == 0 then
@@ -755,7 +807,6 @@ function entity_interact(e, ei, dx, dy)
         push_dialogue(e.base.memory, entity_dialogue_side(e))
         return true
     elseif e.base.swordable and GlobalState.burdens[BURDEN_SWORD] then
-        print(e.base.swordable)
         entity_die(e, "explode")
         ei.rodbasekey = "swd"
         ei.rod_animation_timer = 0.4
@@ -959,6 +1010,9 @@ function entity_execute_move(e)
     elseif q.blocked == "stopped" then
         enqueue_sfx("snd_push_small")
         table.insert(State.entity_animating, e)
+        if q.e.base.bump then
+            q.e.base.bump(q.e, e, q.dx, q.dy)
+        end
         e.pushing = true
         if e.fly then
             entity_fall(e)
