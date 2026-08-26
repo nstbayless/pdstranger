@@ -68,11 +68,22 @@ end
 function ENTS.egg.interact(e)
     if not GlobalState.burdens[BURDEN_MEMORY] then return false end
     
-    if State.eggmessage then
+    if State.eggmessage and #State.eggmessage > 0 then
         for i, msg in ipairs(State.eggmessage) do
             push_dialogue(msg, entity_dialogue_side(e))
         end
         
+        return true
+    else
+        local a = State.seed % 0x1000
+        local b = math.floor(State.seed / 0x1000)
+        while gcd(b, #EGGDIALOGUE) ~= 1 do
+            b += 1
+        end
+        local idx = (a + b*e.entity_idx) % #EGGDIALOGUE
+        local msg = EGGDIALOGUE[idx+1]
+        print(a, b, #EGGDIALOGUE, msg)
+        push_dialogue(msg, entity_dialogue_side(e))
         return true
     end
     
@@ -261,11 +272,12 @@ function ENTS.octahedron.update(e, dx, dy)
             return
         end
         
-        path = pathfind(x, y, dst_x, dst_y, e.bias)
+        -- pathfind to player's previous location
+        path = pathfind(x, y, dst_x - dx, dst_y - dy, e.bias)
         
         if not path then
-            -- pathfind to player's previous location
-            path = pathfind(x, y, dst_x - dx, dst_y - dy)
+            -- pathfind to player's current location
+            path = pathfind(x, y, dst_x, dst_y, e.bias)
         end
     end
     
@@ -383,8 +395,24 @@ function ENTS.beaver.update(e)
 end
 
 function ENTS.mim.interact(e)
-    push_dialogue("Can I help you?", entity_dialogue_side(e), "mimic")
-    return 1
+    if State.mimicmessage and #State.mimicmessage > 0 then
+        for i, msg in ipairs(State.mimicmessage) do
+            push_dialogue(msg, entity_dialogue_side(e))
+        end
+        
+        return 1
+    else
+        local a = State.seed % 0x1000
+        local b = math.floor(State.seed / 0x1000)
+        while gcd(b, #MIMICDIALOGUE) ~= 1 do
+            b += 1
+        end
+        local idx = (a + b*e.entity_idx) % #MIMICDIALOGUE
+        local msg = MIMICDIALOGUE[idx+1]
+        print(a, b, #MIMICDIALOGUE, msg)
+        push_dialogue(msg, entity_dialogue_side(e))
+        return 1
+    end
 end
 ENTS.mimx.interact = ENTS.mim.interact
 ENTS.mimy.interact = ENTS.mim.interact
@@ -1010,7 +1038,7 @@ function entity_execute_move(e)
     elseif q.blocked == "stopped" then
         enqueue_sfx("snd_push_small")
         table.insert(State.entity_animating, e)
-        if q.e.base.bump then
+        if q.e and q.e.base.bump then
             q.e.base.bump(q.e, e, q.dx, q.dy)
         end
         e.pushing = true

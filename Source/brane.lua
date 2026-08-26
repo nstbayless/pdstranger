@@ -130,6 +130,8 @@ end
 function add_entity(e, tidx, init)
     assert(tidx, "null tidx")
     e.tidx = tidx
+    State.entity_idx += 1
+    e.entity_idx = State.entity_idx
     if init ~= false then
         entity_init(e)
     end

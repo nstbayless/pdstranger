@@ -54,6 +54,14 @@ function draw_string(px, py, s, flags)
             t = 42
         end
         
+        if c == string.byte("*") then
+            t = 43
+        end
+        
+        if c == string.byte("@") then
+            t = 44
+        end
+        
         if t >= 0 then
             FONT:drawImage(t + 1, px, py)
         end
@@ -285,3 +293,31 @@ function math.round(x)
 end
 
 math.tau = math.pi*2
+
+function read_lines_in_file(path, skipempty)
+    local file = playdate.file.open(path, playdate.file.kFileRead)
+    if not file then return nil end
+    
+    local lines = {}
+    while true do
+        local l = file:readline()
+        if not l then
+            break
+        end
+        if skipempty and #l == 0 then
+            -- do nothing
+        else
+            table.insert(lines, l)
+        end
+    end
+    
+    return lines
+end
+
+function gcd(a, b)
+    if b == 0 then
+        return a
+    end
+    
+    return gcd(b, a % b)
+end

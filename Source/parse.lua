@@ -39,8 +39,8 @@ local function parse_command(argv)
 end
 
 function load_brane(path, retry)
-    local file = playdate.file.open(path, playdate.file.kFileRead)
-    if not file then
+    local lines = read_lines_in_file(path)
+    if not lines or #lines == 0 then
         return false
     end
     
@@ -50,6 +50,8 @@ function load_brane(path, retry)
     State.path = path
     State.music = {}
     State.brane_number = nil
+    State.entity_idx = 0
+    State.seed = math.random(0x1000000)
     
     if not retry then
         State.empty_chests = {}
@@ -60,15 +62,6 @@ function load_brane(path, retry)
             State.brane_number = i
             break
         end
-    end
-
-    local lines = {}
-    while true do
-        local l = file:readline()
-        if not l then
-            break
-        end
-        table.insert(lines, l)
     end
 
     local maxrow = #lines

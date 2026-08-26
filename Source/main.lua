@@ -25,6 +25,10 @@ GlobalState = {
 GFX = playdate.graphics.imagetable.new("tiles")
 BIGGFX = playdate.graphics.imagetable.new("biganim")
 FONT = playdate.graphics.imagetable.new("font")
+EGGDIALOGUE = read_lines_in_file("misc/eggs") or {"Howdy."}
+MIMICDIALOGUE = read_lines_in_file("misc/mimics") or {"Can I help you?"}
+
+print("EGG", EGGDIALOGUE, #EGGDIALOGUE, EGGDIALOGUE[1])
 
 function get_starting_brane()
     for i, arg in ipairs(playdate.argv) do
