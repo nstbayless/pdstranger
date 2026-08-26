@@ -294,12 +294,6 @@ function load_hud()
     end
 end
 
-function find_hud_tidx(state)
-    for i = 1,TIDX_MAX do
-        
-    end
-end
-
 function tile_in_storage(tstring, state)
     if State.rod_storage == nil then
         return false

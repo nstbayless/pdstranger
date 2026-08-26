@@ -516,8 +516,10 @@ function processAction()
                 x += 1
             end
             entity_set_position(player, x, y)
+            State.rod_storage = nil
             player.offx = 0
             player.offy = 0
+            queuedInput = nil
         end
     elseif action.type == "levzap-bolt" then
         for i, e in ipairs(State.entity_killing_player) do
@@ -667,10 +669,10 @@ function draw_special_animations()
             px, py - maxr,
             px + maxr, py - maxr
         )
-        playdate.graphics.fillRect(0, 0, px - maxr, 240)
-        playdate.graphics.fillRect(0, 0, 400, py - maxr)
-        playdate.graphics.fillRect(px + maxr, 0, 400, 240)
-        playdate.graphics.fillRect(0, py + maxr, 400, 240)
+        playdate.graphics.fillRect(0, 0, px - maxr+1, 240)
+        playdate.graphics.fillRect(0, 0, 400, py - maxr+1)
+        playdate.graphics.fillRect(px + maxr-1, 0, 400, 240)
+        playdate.graphics.fillRect(0, py + maxr-1, 400, 240)
         
         return true -- don't draw dialogue
     elseif action.type == "levzap-bolt" then

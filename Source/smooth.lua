@@ -61,7 +61,7 @@ function update_smoothmovement()
     ty = math.floor(player.smoothy)
     player.offx = player.smoothx % 1
     player.offy = player.smoothy % 1
-    player.tidx = tidx_of(tx, ty)
+    entity_set_position(player, tx, ty)
     
     -- check stairs
     local pcx, pcy = math.floor(player.smoothx + 0.5), math.floor(player.smoothy + 0.5)
