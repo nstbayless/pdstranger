@@ -2,7 +2,7 @@
 GW = 24
 GH = 24
 
-GAME_VERSION = 100
+GAME_VERSION = 111
 
 TSTRIDE = 20
 BIGSTRIDE = 6
@@ -27,6 +27,9 @@ TILE_HUD_BDN_MEMORY = 15
 TILE_HUD_BDN_WINGS = 16
 TILE_HUD_BDN_SWORD = 17
 
+TILE_HUD_MEMENTO = 19
+TILE_HUD_MEMENTO_TMP = 18
+
 TILE_ROD_BOX = TSTRIDE
 TILE_ROD_BOX_UNK = TSTRIDE + 1
 
@@ -44,6 +47,11 @@ TILE_WALL_N2 = 2*TSTRIDE + 8
 TILE_WALL_W2 = 2*TSTRIDE + 9
 TILE_WALL_S2 = 2*TSTRIDE + 10
 TILE_WALL_E2 = 2*TSTRIDE + 11
+
+TILE_GLITTER = {
+    10*TSTRIDE + 12,
+    10*TSTRIDE + 13,
+}
 
 FALLING_OBJECT_ANIM = {
     TSTRIDE*11 + 0,
@@ -140,7 +148,7 @@ TILES = {
         sym="*",
         anim={
             default=9,
-            visitor={9, 9, 19, superfast=true},
+            visitor={9, 9, TSTRIDE + 7, superfast=true},
             trigger={false, 9, superfast=true},
         },
     },
@@ -544,6 +552,55 @@ ANIM_GLISTEN = {
     TSTRIDE*8 + 15,
     TSTRIDE*9 + 12,
     TSTRIDE*9 + 13
+}
+
+ANIM_MEMENTO = {
+    13*TSTRIDE + 0,
+    13*TSTRIDE + 0,
+    13*TSTRIDE + 0,
+    13*TSTRIDE + 0,
+    13*TSTRIDE + 0,
+    13*TSTRIDE + 0,
+    13*TSTRIDE + 1,
+    13*TSTRIDE + 2,
+    13*TSTRIDE + 3,
+    13*TSTRIDE + 4,
+    13*TSTRIDE + 5,
+    13*TSTRIDE + 5,
+    13*TSTRIDE + 5,
+    13*TSTRIDE + 5,
+    13*TSTRIDE + 6,
+    13*TSTRIDE + 7,
+    13*TSTRIDE + 8,
+    13*TSTRIDE + 9,
+    13*TSTRIDE + 10,
+    13*TSTRIDE + 10,
+    13*TSTRIDE + 10,
+    13*TSTRIDE + 10,
+    13*TSTRIDE + 10,
+    13*TSTRIDE + 10,
+    13*TSTRIDE + 10,
+    13*TSTRIDE + 10,
+    13*TSTRIDE + 10,
+    13*TSTRIDE + 10,
+    13*TSTRIDE + 10,
+    13*TSTRIDE + 9,
+    13*TSTRIDE + 8,
+    13*TSTRIDE + 7,
+    13*TSTRIDE + 6,
+    13*TSTRIDE + 5,
+    13*TSTRIDE + 5,
+    13*TSTRIDE + 5,
+    13*TSTRIDE + 5,
+    13*TSTRIDE + 4,
+    13*TSTRIDE + 3,
+    13*TSTRIDE + 2,
+    13*TSTRIDE + 1,
+    13*TSTRIDE + 0,
+    13*TSTRIDE + 0,
+    13*TSTRIDE + 0,
+    13*TSTRIDE + 0,
+    13*TSTRIDE + 0,
 }
 
 ANIM_STAIRS = {

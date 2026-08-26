@@ -255,7 +255,12 @@ function TILES.hud.draw(x, y, tstate)
     draw_gfx(px, py, TILE_B_HUD)
     
     if tstate == "_memento" then
-        -- TODO
+        local col = has_memento()
+        if col == 1 then
+            draw_gfx(px, py, TILE_HUD_MEMENTO_TMP)
+        elseif col == 2 then
+            draw_gfx(px, py, TILE_HUD_MEMENTO)
+        end
     elseif tstate == "_locust" then
         draw_gfx(px, py, TILE_HUD_LOCUST)
     elseif tstate == "_i1" then

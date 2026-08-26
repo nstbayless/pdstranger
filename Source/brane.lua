@@ -56,6 +56,8 @@ State = {
     -- increments once at start of player action
     round = 0,
     
+    memento = nil,
+    
     eggmessage = {},
     props = {},
     brane_number = 1,
@@ -196,7 +198,15 @@ end
 
 function exit_by_stairs()
     local player = get_player()
+    assert(player)
     local player_x, player_y = tcoord_of(player.tidx)
+    
+    if State.memento and State.memento.collected then
+        -- permanent memento collect
+        if collect_memento(true) then
+            table.insert(State.particles, {tile=TILE_HUD_MEMENTO, x=player_x, y=player_y-0.6, invert=true, raise=true})
+        end
+    end
     
     local en = ent_at(player_x, player_y - 1)
     if en and en.base.cif then
@@ -425,4 +435,34 @@ function check_player_reached_stairs()
     end
     
     return false
+end
+
+function collect_memento(permanent)
+    if not State.memento then return end
+    if permanent then
+        State.memento.collected = true
+        if not GlobalMementos[State.memento.tag] then
+            GlobalMementos[State.memento.tag] = true
+            playdate.datastore.write(GlobalMementos, "memento", true)
+            return true
+        end
+    else
+        State.memento.collected = true
+    end
+    
+    return false
+end
+
+-- returns 0 if doesn't have it
+-- returns 1 if has it temporarily
+-- returns 2 if has it permanently
+function has_memento()
+    if not State.memento then return 0 end
+    if not GlobalMementos then return 0 end
+    if GlobalMementos[State.memento.tag] then
+        return 2
+    elseif State.memento.collected then
+        return 1
+    end
+    return 0
 end

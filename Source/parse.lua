@@ -5,6 +5,12 @@ local function parse_command(argv)
     if #argv == 0 then return end
     if argv[1] == "nextbrane" then
         State.nextbrane = argv[2]
+    elseif argv[1] == "memento" then
+        State.memento = {
+            tag=argv[2],
+            x=string_to_number(argv[3]),
+            y=string_to_number(argv[4]),
+        }
     elseif argv[1] == "voidcondition" then
         State.voidcondition = argv[2]
     elseif argv[1] == "prop" then

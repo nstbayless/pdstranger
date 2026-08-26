@@ -22,6 +22,8 @@ GlobalState = {
     }
 }
 
+GlobalMementos = {}
+
 GFX = playdate.graphics.imagetable.new("tiles")
 BIGGFX = playdate.graphics.imagetable.new("biganim")
 FONT = playdate.graphics.imagetable.new("font")
@@ -400,6 +402,15 @@ function processAction()
                     player.rodbasekey = "rod"
                     enqueue_sfx("snd_voidrod_place")
                     
+                    -- collect memento
+                    print(State.memento, has_memento())
+                    if State.memento and has_memento() == 0 then
+                        if State.memento.x == x + dx and State.memento.y == y + dy then
+                            print("collect!")
+                            collect_memento(false)
+                        end
+                    end
+                    
                     if TILES[tstring].onrod then
                         TILES[tstring].onrod(dstidx, state, "store")
                     end
@@ -737,18 +748,24 @@ function draw_particles(behind)
                 if State.frame % 4 >= 2 and icon.invert then
                     playdate.graphics.setImageDrawMode(playdate.graphics.kDrawModeInverted)
                 end
-                local y = icon.y
-                if icon.raise then
-                    y -= math.min(icon.t, 0.3)*2.5
-                end
-                local px, py = pcoord_of(icon.x, y)
-                
-                if icon.anim then
-                    draw_anim(px, py, icon.anim, math.floor(icon.t * #icon.anim))
+                if State.frame % 2 == 1 and icon.flicker then
+                    -- no draw
                 else
-                    draw_gfx(px, py, icon.tile)
+                    local y = icon.y
+                    if icon.fastraise then
+                        y -= icon.t
+                    elseif icon.raise then
+                        y -= math.min(icon.t, 0.3)*2.5
+                    end
+                    local px, py = pcoord_of(icon.x, y)
+                    
+                    if icon.anim then
+                        draw_anim(px, py, icon.anim, math.floor(icon.t * #icon.anim))
+                    else
+                        draw_gfx(px, py, icon.tile)
+                    end
+                    playdate.graphics.setImageDrawMode(playdate.graphics.kDrawModeCopy)
                 end
-                playdate.graphics.setImageDrawMode(playdate.graphics.kDrawModeCopy)
             end
         end
     end
@@ -831,6 +848,19 @@ function update_whiteglitch()
     end
 end
 
+function draw_memento()
+    if State.memento and has_memento() == 0 then
+        local px, py = pcoord_of(State.memento.x, State.memento.y)
+        draw_anim(px, py, ANIM_MEMENTO, math.floor(State.frame / 4))
+        if State.frame % 5 == 2 then
+            if ent_at(State.memento.x, State.memento.y) then
+                local tile = TILE_GLITTER[math.random(#TILE_GLITTER)]
+                table.insert(State.particles, {tile=tile, x=State.memento.x - 0.5 + math.random(), y=State.memento.y + 0.4, flicker=true, fastraise=true, duration=0.7})
+            end
+        end
+    end
+end
+
 function playdate.update()
     -- update
     if State.glitch then
@@ -851,6 +881,11 @@ function playdate.update()
         end
     end
     
+    -- memento check
+    if State.memento and has_memento() == 0 and tile_at(State.memento.x, State.memento.y) == "void" then
+        State.memento = nil
+    end
+    
     -- audio
     play_queued_sfx()
     music_update()
@@ -860,6 +895,7 @@ function playdate.update()
     playdate.graphics.fillRect(0, 0, 400, 240)
     if not State.levzap and not State.atone then
         draw_tiles()
+        draw_memento()
         if State.props.invert then
             playdate.graphics.setColor(playdate.graphics.kColorXOR)
             playdate.graphics.fillRect(0, 0, 400, 240)
@@ -930,6 +966,7 @@ end
 math.randomseed(playdate.getSecondsSinceEpoch())
 
 -- try loading
+GlobalMementos = playdate.datastore.read("memento") or {}
 local _gs = playdate.datastore.read("save")
 if _gs and _gs.brane and #playdate.argv <= 1 then
     _gs.version = GAME_VERSION
