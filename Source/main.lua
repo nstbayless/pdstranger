@@ -851,8 +851,11 @@ end
 function draw_memento()
     if State.memento and has_memento() == 0 then
         local px, py = pcoord_of(State.memento.x, State.memento.y)
-        draw_anim(px, py, ANIM_MEMENTO, math.floor(State.frame / 4))
-        if State.frame % 5 == 2 then
+        
+        local f = GlobalState.hasrod and State.frame/4 or 0
+        draw_anim(px, py, ANIM_MEMENTO, math.floor(f))
+        
+        if State.frame % 5 == 2 and GlobalState.hasrod then
             if ent_at(State.memento.x, State.memento.y) then
                 local tile = TILE_GLITTER[math.random(#TILE_GLITTER)]
                 table.insert(State.particles, {tile=tile, x=State.memento.x - 0.5 + math.random(), y=State.memento.y + 0.4, flicker=true, fastraise=true, duration=0.7})
