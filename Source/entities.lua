@@ -623,7 +623,7 @@ function ENTS.chest.interact(e, ei, dx, dy)
             else
                 local success = gainLife(nloc)
                 -- TODO: double locust
-                table.insert(State.particles, {tile=TILE_HUD_LOCUST, x=ex, y=ey, invert=true, raise=true})
+                table.insert(State.particles, {tile=TILE_DOUBLE_LOCUST, x=ex, y=ey, invert=true, raise=true})
                 if not success then
                     push_dialogue("[Huh!? Where did they go..?]", entity_dialogue_side(get_player()))
                 else

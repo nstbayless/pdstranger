@@ -3,6 +3,7 @@
 - crush faller under tile
 - null brane
 - mementos
+- push object onto enemy - doesn't activate explo tile
 
 - mimic timing:
     - same movement as any other entities
