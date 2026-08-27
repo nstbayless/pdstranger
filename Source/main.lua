@@ -812,6 +812,7 @@ end
 function draw_stair_animation(t)
     local tidx = find_tile("stair")
     if not tidx then return end
+    if not GlobalState.hasrod then return end
     
     if not ent_at(tidx) then return end
     
@@ -954,7 +955,8 @@ function draw_memento()
         draw_anim(px, py, ANIM_MEMENTO, math.floor(f))
         
         if State.frame % 5 == 2 and GlobalState.hasrod then
-            if ent_at(State.memento.x, State.memento.y) then
+            local e = ent_at(State.memento.x, State.memento.y) 
+            if e and not e.base.player then
                 local tile = TILE_GLITTER[math.random(#TILE_GLITTER)]
                 table.insert(State.particles, {tile=tile, x=State.memento.x - 0.5 + math.random(), y=State.memento.y + 0.4, flicker=true, fastraise=true, duration=0.7})
             end

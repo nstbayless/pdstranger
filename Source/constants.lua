@@ -199,6 +199,8 @@ TILES = {
             ["^4"]="ns2",
             ["v4"]="ew2",
             
+            ["5"]="nsew",
+            
             ["`"]="wn",
             ["'"]="en",
             [","]="ws",
@@ -228,6 +230,7 @@ TILES = {
             s3=13*TSTRIDE + 14,
             ns2=13*TSTRIDE+15,
             ew2=13*TSTRIDE+16,
+            nsew=13*TSTRIDE+17,
             en=2*TSTRIDE + 12,
             wn=2*TSTRIDE + 13,
             ws=2*TSTRIDE + 14,
