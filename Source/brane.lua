@@ -448,10 +448,12 @@ function collect_memento(permanent)
     return false
 end
 
+-- returns -1 if not available
 -- returns 0 if doesn't have it
 -- returns 1 if has it temporarily
 -- returns 2 if has it permanently
 function has_memento()
+    if GlobalState.void then return -1 end
     if not State.memento then return 0 end
     if not GlobalMementos then return 0 end
     if GlobalMementos[State.memento.tag] then
