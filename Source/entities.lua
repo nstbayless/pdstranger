@@ -956,12 +956,46 @@ function entity_set_position(e, x, y)
     e.tidx = tidx
 end
 
-function entity_execute_move(e)
+function entity_execute_push(e)
     local x, y = tcoord_of(e.tidx)
     
     assert(e.queued_move, "entity lacks queued move!")
-    
     local q = e.queued_move
+    assert(q.blocked == "push")
+    
+    -- perform push
+    table.insert(State.entity_animating, e)
+    e.pushing = true
+    
+    local epush = q.e
+    
+    if epush.late_move and epush.late_move.pushed then
+        -- already pushed by something else.
+        -- cancel the push.
+        epush.late_move.move = false
+        epush.late_move.dx = 0
+        epush.late_move.dy = 0
+        enqueue_sfx("snd_push_small")
+    else
+        -- attempt push
+        epush.late_move = {
+            move=true,
+            pushed=true,
+            dx=q.dx, dy=q.dy
+        }
+    end
+    
+    -- flying pushers fall
+    if e.fly then
+        entity_fall(e)
+    end
+end
+
+function entity_execute_move(e, q)
+    local x, y = tcoord_of(e.tidx)
+    
+    assert(q, "entity lacks queued move!")
+    
     if q.move then
         local dstx, dsty = x + q.dx, y + q.dy
         local dstidx = tidx_of(dstx, dsty)
@@ -1049,29 +1083,6 @@ function entity_execute_move(e)
         if e.fly then
             entity_fall(e)
         end
-    elseif q.blocked == "push" then
-        -- perform push
-        table.insert(State.entity_animating, e)
-        e.pushing = true
-        
-        if q.e.late_queued_move and q.e.late_queued_move.pushed then
-            -- already pushed by something else.
-            -- cancel the push.
-            q.e.late_queued_move.move = false
-            q.e.late_queued_move.dx = 0
-            q.e.late_queued_move.dy = 0
-            enqueue_sfx("snd_push_small")
-        else
-            -- true push
-            q.e.late_queued_move = {
-                move=true,
-                pushed=true,
-                dx=q.dx, dy=q.dy
-            }
-        end
-        if e.fly then
-            entity_fall(e)
-        end
     end
     
     e.queued_move = nil
@@ -1081,38 +1092,37 @@ function execute_moves()
     State.tiles_entered = {}
     State.tiles_exited = {}
     
-    while true do
-        -- execute moves
-        for tidx, e in pairs(table.copy(State.ents)) do
-            if e.queued_move then
-                entity_execute_move(e)
-            end
-        end
-
-        entity_clear_movephase()
-        
-        -- check if anything to process
-        local any_late = false
-        
-        -- deferred moves
-        for tidx, e in pairs(table.copy(State.ents)) do
-            if e.late_queued_move then
-                e.queued_move = e.late_queued_move
-                e.late_queued_move = nil
-                local q = e.queued_move
-                if q.move then
-                    local ex, ey = tcoord_of(e.tidx)
-                    local dstx, dsty = ex + q.dx, ey + q.dy
-                    add_entity_moving_to(dstx, dsty, e)
-                end
-                any_late = true
-            end
-        end
-        
-        if not any_late then
-            break
+    -- collect pushes
+    for tidx, e in pairs(table.copy(State.ents)) do
+        if e.queued_move and e.queued_move.blocked == "push" then
+            entity_execute_push(e)
         end
     end
+    
+    -- mark pushed entities as moving
+    for tidx, e in pairs(table.copy(State.ents)) do
+        if e.late_move and e.late_move.pushed and e.late_move.move then
+            local x, y = tcoord_of(e.tidx)
+            add_entity_moving_to(x + e.late_move.dx, y + e.late_move.dy, e)
+        end
+    end
+    
+    -- execute all moves
+    for tidx, e in pairs(table.copy(State.ents)) do
+        if e.queued_move then
+            entity_execute_move(e, e.queued_move)
+        end
+    end
+    
+    -- execute late moves
+    for tidx, e in pairs(table.copy(State.ents)) do
+        if e.late_move then
+            entity_execute_move(e, e.late_move)
+            e.late_move = nil
+        end
+    end
+
+    entity_clear_movephase()
     
     -- tiles entered/exited
     for tidx, ed in pairs(State.tiles_exited) do
@@ -1150,13 +1160,11 @@ function shades_exist()
     return false
 end
 
-ROUND_PHASES = {"shade", "_stairs", "mimic", "other", "_stairs", "_tiles", "statue", "_post"}
+ROUND_PHASES = {"shade", "_stairs", "other", "_stairs", "_tiles", "statue", "_post"}
 
 function entity_round_phase(e)
     if e.base.shade then
         return "shade"
-    elseif e.base.mimic then
-        return "mimic"
     elseif e.base.statue then
         return "statue"
     end
