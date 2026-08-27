@@ -200,6 +200,7 @@ function exit_by_stairs()
     local player = get_player()
     assert(player)
     local player_x, player_y = tcoord_of(player.tidx)
+    player.fly = false
     
     if State.memento and State.memento.collected then
         -- permanent memento collect
