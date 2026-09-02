@@ -906,6 +906,16 @@ function entity_die(e, cause)
         end
     end
     
+    -- trigger tan statues
+    if e.base.enemy then
+        for tidx, e2 in pairs(State.ents) do
+            if e2.base.tan and e2.base.statue then
+                e2.flashing = true
+                e2.visible_state_t = 0.6
+            end 
+        end
+    end
+    
     if cause == "explode" or cause == "crush" then
         State.explosions[e.tidx] = true
         enqueue_sfx(e.base.player and "snd_explosion" or "snd_enemy_explosion")

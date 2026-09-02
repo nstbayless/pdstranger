@@ -300,6 +300,7 @@ ENTS = {
         sym = "T",
         statue = true,
         push = true,
+        tan = true,
         memory = "Make them go away...",
         anim = TSTRIDE*4 + 4,
     },

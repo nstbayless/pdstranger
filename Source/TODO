@@ -1,12 +1,8 @@
 - falling into pit animation (panic animation)
-- if an entity dies while on glass, the glass breaks
 - crush faller under tile
 - null brane
-- mementos
 - push object onto enemy - doesn't activate explo tile
-- tan statues flash when enemy dies
 - can mimics, leeches, maggots, kill adjacent flying player?
 
 - mimic timing:
-    - same movement as any other entities
     - what about statue pushing into the path of another enemy?
