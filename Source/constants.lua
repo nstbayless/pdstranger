@@ -469,6 +469,7 @@ ENTS = {
         sym = "h",
         enemy=true,
         swordable=true,
+        octahedron=true,
         anim={
             idle={TSTRIDE*6 + 0, TSTRIDE*6 + 1, fast=true},
             active={TSTRIDE*6 + 2, TSTRIDE*6 + 3, TSTRIDE*6 + 4, TSTRIDE*6 + 5, fast=true},
@@ -692,6 +693,7 @@ MOVE_FLAG_NO_PUSH = 2
 MOVE_FLAG_IGNORE_PLAYER = 4
 MOVE_FLAG_NO_PUSHBLOCKER = 8
 MOVE_FLAG_IGNORE_SHADES = 16
+MOVE_FLAG_IGNORE_OCTAHEDRA = 32
 
 -- in seconds
 SECONDARY_ANIMATIONS_TIME = 0.6

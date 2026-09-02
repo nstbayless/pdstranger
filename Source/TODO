@@ -4,6 +4,8 @@
 - null brane
 - mementos
 - push object onto enemy - doesn't activate explo tile
+- tan statues flash when enemy dies
+- can mimics, leeches, maggots, kill adjacent flying player?
 
 - mimic timing:
     - same movement as any other entities

@@ -1,6 +1,7 @@
 import "constants"
 
-function pathfind(x0, y0, x1, y1, bias)
+function pathfind(x0, y0, x1, y1, bias, flags)
+    flags = flags or 0
     bias = bias or "nswe"
     local bias_order = {
     }
@@ -28,8 +29,11 @@ function pathfind(x0, y0, x1, y1, bias)
         if (x == x1 and y == y1) then return true end
         
         local e = ent_at(x, y)
-        if e then return false end
-        return true
+        if not e then return true end
+        if e.base.octahedron and MOVE_FLAG_IGNORE_OCTAHEDRA then return true end
+        if e.base.shade and MOVE_FLAG_IGNORE_SHADES then return true end
+        if e.base.player and MOVE_FLAG_IGNORE_PLAYER then return true end
+        return false
     end
     
     local srcidx = tidx_of(x0, y0)

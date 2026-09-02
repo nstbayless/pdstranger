@@ -266,6 +266,7 @@ function ENTS.octahedron.update(e, dx, dy)
     if player then
         local dst_x, dst_y = tcoord_of(player.tidx)
         
+        -- attack adjacent player
         if math.abs(dst_x - x) + math.abs(dst_y - y) == 1 then
             entity_prepare_move(e, dst_x - x, dst_y - y)
             e.state = "active"
@@ -273,11 +274,11 @@ function ENTS.octahedron.update(e, dx, dy)
         end
         
         -- pathfind to player's previous location
-        path = pathfind(x, y, dst_x - dx, dst_y - dy, e.bias)
+        path = pathfind(x, y, dst_x - dx, dst_y - dy, e.bias, MOVE_FLAG_IGNORE_OCTAHEDRA)
         
         if not path then
             -- pathfind to player's current location
-            path = pathfind(x, y, dst_x, dst_y, e.bias)
+            path = pathfind(x, y, dst_x, dst_y, e.bias, MOVE_FLAG_IGNORE_OCTAHEDRA)
         end
     end
     
@@ -365,6 +366,14 @@ function ENTS.beaver.update(e)
             dy = 1
         end
         
+        -- attack adjacent player
+        if math.abs(player_x - x) + math.abs(player_y - y) == 1 then
+            entity_prepare_move(e, dx, dy)
+            e.state = dir_to_cardinal(dx, dy)
+            return
+        end
+        
+        -- charge toward distant player
         if dx ~= 0 or dy ~= 0 then
             if has_line_of_sight(x, y, player_x, player_y) then
                 local blocker = get_entity_move_blocker(
