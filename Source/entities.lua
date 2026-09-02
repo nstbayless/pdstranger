@@ -110,7 +110,7 @@ end
 function ENTS.sttan.update(e)
     -- check if any enemies (or NPCs) alive
     for tidx,e in pairs(State.ents) do
-        if e.base.enemy then
+        if e.base.enemy or e.base.npc then
             return
         end
     end
@@ -907,7 +907,7 @@ function entity_die(e, cause)
     end
     
     -- trigger tan statues
-    if e.base.enemy then
+    if e.base.enemy or e.base.npc then
         for tidx, e2 in pairs(State.ents) do
             if e2.base.tan and e2.base.statue then
                 e2.flashing = true
